@@ -1,0 +1,17 @@
+{
+    "contents" : "---\ntitle: \"Capstone - 1 Get the Data\"\nauthor: \"jmvilaverde\"\ndate: \"Wednesday, October 07, 2015\"\noutput: pdf_document\n---\n\nTask 0 - Get the Data Help Center\n\nThe first step in analyzing any new data set is figuring out: (a) what data you have and (b) what are the standard tools and models used for that type of data. Make sure you have downloaded the data from Coursera before heading for the exercises.\n\nThe data for this capstone come from Yelp, which is a business founded in 2004 to \"help people find great local businesses like dentists, hair stylists and mechanics.\" As of the second quarter of 2015, Yelp had a monthly average of 83 million unique visitors who visited Yelp via their mobile device and written more than 83 million reviews.\n\nThe dataset provided here is part of the Yelp Dataset Challenge and the specific dataset used in this capstone corresponds to Round 6 of their challenge (the documentation mentions Round 5, but the datasets for Rounds 5 and 6 are identical). The dataset is approximately 575MB so you will need access to a good Internet connection to download it.\n\nDownload the data: Yelp Dataset (575 MB) [https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip]\n\n_Code 01. Extract files and data._\n```{r extract, echo=TRUE, cache=TRUE}\n#Set data path\nURLData <<- \"https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip\"\nfileZip <<- \"data/raw/yelp_dataset_challenge_academic_dataset.zip\"\n\nif (!file.exists(fileZip)) download.file(URLData, fileZip)\n#trainingData <<- read.csv(fileZip)\n```\n\nThis capstone project will be open-ended, so we will not be prescribing a specific analysis that you need to complete or a specific model that you need to build. Instead, we want you to explore the dataset and familiarize yourself with it so that you can formulate a question that is of interest to you.\n\nIn this capstone we will be applying a variety of tools of data science. Depending on the type of question you are interested in asking, you may need to apply a different set of skills. Given the nature of the dataset, you may want to read up on a few topics, such as text processing and the JSON format.\n\nJSON data format\nText mining infrastucture in R: http://www.jstatsoft.org/v25/i05/\nCRAN Packages for reading JSON data: jsonlite RJSONIO rjson\nCRAN Task View on Web Technologies\nCRAN Task View on Natural Language Processing\nTasks to accomplish\n\nLearn about Yelp and what kinds of data it collects\nObtaining the data - Can you download the data and load it in R?\nFamiliarizing yourself with the metadata - What features/variables are included? What data is stored in each of the different files? How can you link the information from the different files together?\nQuestions to consider\n\nWhat do the data look like?\nWhere do the data come from?\nCan you think of any other data sources that might help you in this project?\nWhat are some common issues in the analysis of text data?\n",
+    "created" : 1444221428825.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3166274934",
+    "id" : "26AF0D18",
+    "lastKnownWriteTime" : 1444409973,
+    "path" : "D:/Privado/repos/10.Capstone/1.Get_Data.md",
+    "project_path" : "1.Get_Data.md",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "source_on_save" : false,
+    "type" : "markdown"
+}

@@ -1,0 +1,17 @@
+{
+    "contents" : "\n#Set URL Data path\nURLData <<- \"https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip\"\n\n#Set directory where it's to be stored\ndirectoryRaw <<- \"data/raw\"\n\n#Create directory, if it doesn't exists\nif (!dir.exists(directoryRaw)) dir.create(directoryRaw, recursive=TRUE)\n\nfileZip <<- paste(directoryRaw, \"yelp_dataset_challenge_academic_dataset.zip\", sep = \"/\", collapse = NULL)\n\nif (!file.exists(fileZip))\n        {\n                download.file(URLData, fileZip)\n                unzip(fileZip, exdir = directoryRaw)\n        }\n\n#Get data from file\nlibrary(rjson)\nbasePath <- paste(directoryRaw, \"yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_\", sep = \"/\")\n\njson_file_business <- paste(basePath, \"business.json\", sep =\"\")\n\n\n#CHECKPOINT!! 20151007\nif (file.exists(json_file_business))\n        json_data_business <- fromJSON(paste(readLines(json_file_business), collapse=\",\"))\n        #json_data_business <- fromJSON(json_file_business)\n\n\nmain <- function(){\n        getData()\n        readData(directoryRaw)\n        \n}\n#Code from\n#https://www.safaribooksonline.com/blog/2014/01/13/reading-and-parsing-external-data-in-r/\n\ndf <- data.frame()\n\nfor(n in json_data_business){\n        business_id <- n$business_id\n        full_address <- n$full_address\n        newrow <- data.frame(business_id, full_address, stringsAsFactors=FALSE, check.rows=FALSE)\n        df <- rbind(df, newrow)\n}",
+    "created" : 1444221197596.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "250512841",
+    "id" : "137783FD",
+    "lastKnownWriteTime" : 1444409950,
+    "path" : "D:/Privado/repos/10.Capstone/1.Get_Data.R",
+    "project_path" : "1.Get_Data.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
