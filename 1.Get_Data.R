@@ -22,34 +22,31 @@ getJSON <- function(){
 #Get data from file
 # library(rjson)
 library(jsonlite)
+require(dplyr)
+
 basePath <- paste(directoryRaw, "yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_", sep = "/")
 
-json_file_business <- paste(basePath, "business.json", sep ="")
+files <- c("business", "checkin", "review", "tip", "user")
+json_file <- list()
+json_data <- list()
 
 
-#CHECKPOINT!! 20151007
-if (file.exists(json_file_business))
-        json_data_business <<- fromJSON(paste("[",paste(readLines(json_file_business), collapse=","),"]"), simplifyDataFrame = TRUE)
-        #json_data_business <- fromJSON(json_file_business)
+limit = 100
 
-business <- with(json_data_business,cbind(business_id, full_address, open, as.character(city), review_count, name,
-                                          neighborhoods, longitude, as.character(state), latitude, as.character(type))) 
-business <-  as.data.frame(business, stringsAsFactors = FALSE)
-colnames(business) <- c("business_id", "full_address", "open", "city", "review_count", "name",
-                        "neighborhoods", "longitude", "state", "latitude", "type")
+for (set in files) {
+        json_file[set] <- paste(basePath, set, ".json", sep ="")
 
-business_categories <- with(json_data_business,cbind(business_id, as.character(categories))) 
-business_categories <-  as.data.frame(business_categories, stringsAsFactors = FALSE)
-colnames(business_categories) <- c("business_id", "categories")
+        print(json_file[set])
+         if (file.exists(as.character(json_file[set]))){
+                 data <- fromJSON(paste("[",paste(readLines(as.character(json_file[set]), n=limit), 
+                                                             collapse=","),"]"), simplifyDataFrame = TRUE)
+                
+                # Forum solution to  flatten file
+                # https://class.coursera.org/dsscapstone-005/forum/thread?thread_id=24
+                  json_data[set] <- flatten(data)
+        }
 
-business_hours <- with(json_data_business,cbind(business_id, hours)) 
-business_hours <-  as.data.frame(business_hours, stringsAsFactors = FALSE)
-
-business_attributes <- with(json_data_business,cbind(business_id, as.character(attributes))) 
-business_attributes <-  as.data.frame(business_attributes, stringsAsFactors = FALSE)
-colnames(business_attributes) <- c("business_id", "attributes")
-
-
+}
 
 }
 
