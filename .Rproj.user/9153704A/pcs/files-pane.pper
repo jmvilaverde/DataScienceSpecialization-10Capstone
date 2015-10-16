@@ -1,0 +1,9 @@
+{
+    "path" : "D:/Privado/repos/10.Capstone/data/raw/yelp_dataset_challenge_academic_dataset",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1444909647803.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "11911CB7",
+    "lastKnownWriteTime" : 7741240722073845761,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "data$review",
+        "contentUrl" : "content?title=data%24review&file=ed994f6a59d340928d6a0304385e44aa.htm",
+        "displayedObservations" : 100,
+        "displayedVariables" : 10,
+        "totalObservations" : 100,
+        "variables" : 10
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

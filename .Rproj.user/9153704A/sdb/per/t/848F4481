@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1444909656628.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "848F4481",
+    "lastKnownWriteTime" : 7741240722073845761,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "data$tip",
+        "contentUrl" : "content?title=data%24tip&file=b23856dca3ad40eab3d3939eb316675b.htm",
+        "displayedObservations" : 100,
+        "displayedVariables" : 6,
+        "totalObservations" : 100,
+        "variables" : 6
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

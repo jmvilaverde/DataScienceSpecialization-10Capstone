@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1444910632325.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "14A836E5",
+    "lastKnownWriteTime" : 7741240722073845761,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "data$business",
+        "contentUrl" : "content?title=data%24business&file=6c2f8205a1434cc98186abb920e054e8.htm",
+        "displayedObservations" : 100,
+        "displayedVariables" : 82,
+        "totalObservations" : 100,
+        "variables" : 82
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

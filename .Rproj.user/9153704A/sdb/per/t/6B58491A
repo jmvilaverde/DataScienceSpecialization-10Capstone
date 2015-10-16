@@ -1,0 +1,17 @@
+{
+    "contents" : "getData <- function(){\n        #Set URL Data path\n        URLData <<- \"https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip\"\n        \n        #Set directory where it's to be stored\n        directoryRaw <<- \"data/raw\"\n        \n        #Create directory, if it doesn't exists\n        if (!dir.exists(directoryRaw)) dir.create(directoryRaw, recursive=TRUE)\n        \n        fileZip <- paste(directoryRaw, \"yelp_dataset_challenge_academic_dataset.zip\", sep = \"/\", collapse = NULL)\n        \n        if (!file.exists(fileZip))\n        {\n                download.file(URLData, fileZip)\n                unzip(fileZip, exdir = directoryRaw)\n        }\n}\n\ngetJSON <- function(){\n        #Get data from file\n        # library(rjson)\n        library(jsonlite)\n        require(dplyr)\n        \n        basePath <- paste(directoryRaw, \"yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_\", sep = \"/\")\n        \n        files <- c(\"business\", \"checkin\", \"review\", \"tip\", \"user\")\n        json_file <- list()\n        json_data <<- list()\n        \n        \n        limit = 100\n        \n        for (set in files) {\n                json_file[set] <- paste(basePath, set, \".json\", sep =\"\")\n                \n                print(json_file[set])\n                if (file.exists(as.character(json_file[set]))){\n                        data <- fromJSON(paste(\"[\",paste(readLines(as.character(json_file[set]), n=limit), \n                                                         collapse=\",\"),\"]\"), simplifyDataFrame = TRUE)\n                        # Forum solution to  flatten file\n                        # https://class.coursera.org/dsscapstone-005/forum/thread?thread_id=24\n                        json_data[[set]] <<- flatten(data)\n                }\n                \n        }\n        \n        #json_data\n        \n}\n\nmain <- function(){\n        getData()\n        getJSON()\n        \n}",
+    "created" : 1444906365496.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1696621453",
+    "id" : "6B58491A",
+    "lastKnownWriteTime" : 1444910676,
+    "path" : "D:/Privado/repos/10.Capstone/1.Get_Data.R",
+    "project_path" : "1.Get_Data.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

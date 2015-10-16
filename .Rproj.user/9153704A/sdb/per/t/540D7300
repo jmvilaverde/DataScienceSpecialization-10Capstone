@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1444909549028.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "540D7300",
+    "lastKnownWriteTime" : 7741240722073845761,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "data$checkin",
+        "contentUrl" : "content?title=data%24checkin&file=f60aff4592414ab789974999a55cb3eb.htm",
+        "displayedObservations" : 100,
+        "displayedVariables" : 100,
+        "totalObservations" : 100,
+        "variables" : 148
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
