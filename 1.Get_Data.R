@@ -27,14 +27,18 @@ require(dplyr)
 basePath <- paste(directoryRaw, "yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_", sep = "/")
 
 files <- c("business", "checkin", "review", "tip", "user")
-json_file <- list()
-json_data <- list()
+json_file <<- list()
+csv_file <<- list()
+json_data <<- list()
 
 
-limit = 100
+limit = -1
+
+#for (set in files) {write_csv(as.data.frame(json_data[set]),path = as.character(csv_file[set]))}
 
 for (set in files) {
-        json_file[set] <- paste(basePath, set, ".json", sep ="")
+        json_file[set] <<- paste(basePath, set, ".json", sep ="")
+        csv_file[set] <<- paste(basePath, set, ".csv", sep ="")
 
         print(json_file[set])
          if (file.exists(as.character(json_file[set]))){
@@ -43,7 +47,11 @@ for (set in files) {
                 
                 # Forum solution to  flatten file
                 # https://class.coursera.org/dsscapstone-005/forum/thread?thread_id=24
-                  json_data[set] <- flatten(data)
+                  json_data[[set]] <<- flatten(data)
+                
+                if(!file.exists(as.character(csv_file[set]))){
+                        write.csv(json_data[[set]],file = as.character(csv_file[set]))
+                }
         }
 
 }
