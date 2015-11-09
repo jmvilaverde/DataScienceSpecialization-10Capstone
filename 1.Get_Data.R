@@ -91,8 +91,7 @@ for (i in 1:nrow(states)) {
          }
          
          #Checkin files per business per State
-         overwrite_checkin = TRUE
-         
+         overwrite_checkin <- FALSE
          checkin_file_RDS <- paste(dir_state,"/","checkin",".RDS",sep="")
          if((!file.exists(checkin_file_RDS) || overwrite_checkin) && file.exists(business_file_RDS)){
                 aux <- readRDS(business_file_RDS)
@@ -102,12 +101,37 @@ for (i in 1:nrow(states)) {
                  
          }
          
+         #Checkin files per business per State
+         createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
+         
+#          overwrite_tip <- FALSE
+#          tip_file_RDS <- paste(dir_state,"/","tip",".RDS",sep="")
+#          if((!file.exists(tip_file_RDS) || overwrite_tip) && file.exists(business_file_RDS)){
+#                  aux <- readRDS(business_file_RDS)
+#                  json_data[["tip"]] %>% 
+#                          semi_join(aux, by = "business_id") -> aux_tip
+#                  saveRDS(object= aux_tip,file = tip_file_RDS)
+#                  
+#          }
+         
 }
 
 #Filter and save
 
 
 
+}
+
+createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin"){
+        file_RDS <- paste(dir,"/",dataset,".RDS",sep="")
+        if((!file.exists(file_RDS) || overwrite) && file.exists(bs_file_RDS)){
+                aux <- readRDS(bs_file_RDS)
+                json_data[[dataset]] %>% 
+                        semi_join(aux, by = "business_id") -> aux_data
+                saveRDS(object= aux_data,file = file_RDS)
+                
+        }
+        
 }
 
 getDistinct <- function(object="business", column="state") {
