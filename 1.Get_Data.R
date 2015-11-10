@@ -1,5 +1,8 @@
-
+###
+#Function to get data
+###
 getData <- function(){
+
 #Set URL Data path
 URLData <<- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip"
 
@@ -9,127 +12,223 @@ directoryRaw <<- "data/raw"
 #Create directory, if it doesn't exists
 if (!dir.exists(directoryRaw)) dir.create(directoryRaw, recursive=TRUE)
 
+#Set file for ZIP
 fileZip <- paste(directoryRaw, "yelp_dataset_challenge_academic_dataset.zip", sep = "/", collapse = NULL)
 
-if (!file.exists(fileZip))
-        {
-                download.file(URLData, fileZip)
-                unzip(fileZip, exdir = directoryRaw)
+if (!file.exists(fileZip)){
+        download.file(URLData, fileZip)
+        unzip(fileZip, exdir = directoryRaw)
         }
 }
+###
+#End Function getData
+###
 
-getJSON <- function(r_limit=10000, clean=FALSE){
+###
+#Function to getJSON data from files
+#r-limit is the limit of lines to read from review files #TODO: Use it to extract the data in blocks. Find ideal block size.
+#clean 
+###
+getJSON <- function(r_limit=100000, clean=FALSE){
 #Get data from file
 # library(rjson)
 library(jsonlite)
 require(dplyr)
 
+#Base path for the JSON dataset
 basePath <- paste(directoryRaw, "yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_", sep = "/")
 
+#file types
 files <- c("business", "checkin", "tip", "user", "review")
+
+#Initialize variables
 json_file <<- list()
 rds_file <<- list()
 json_data <<- list()
 
 #Load rds
+#Explore all file types
 for (set in files) {
+        #Define origin and destiny file for each file type
         json_file[set] <<- paste(basePath, set, ".json", sep ="")
         rds_file[set] <<- paste(basePath, set, ".rds", sep ="")
 
-        print(json_file[set])
+        #Log print
+        print("Start processing of data:")
         print(timestamp())
-         if (file.exists(as.character(json_file[set])) && !file.exists(as.character(rds_file[set]))){
-                 
-                 #Only applies a limit if file is Review
-                 if (set=="review") {limit = r_limit} else {limit = -1}
+        print(json_file[set])
+        
+        if (file.exists(as.character(json_file[set])) && !file.exists(as.character(rds_file[set]))){
                 
-                 data <- fromJSON(paste("[",paste(readLines(as.character(json_file[set]), n=limit), 
+                print("Create RDS file")
+                print(timestamp())
+                
+                #Only applies a limit if file is Review
+                if (set=="review") {limit = r_limit} else {limit = -1}
+                
+                data <- fromJSON(paste("[",paste(readLines(as.character(json_file[set]), n=limit), 
                                                      collapse=","),"]"), simplifyDataFrame = TRUE)
                 
                 
                 # Forum solution to  flatten file
                 # https://class.coursera.org/dsscapstone-005/forum/thread?thread_id=24
-                  json_data[[set]] <<- flatten(data)
+                json_data[[set]] <<- flatten(data)
+                
+                print(paste(set,"loaded into json_data"))
+                print(timestamp())
                 
                 if(file.exists(as.character(rds_file[set])) && clean){
-                          file.remove(as.character(rds_file[set]))
-                }
+                        file.remove(as.character(rds_file[set]))
+                        }
                   
                 if(!file.exists(as.character(rds_file[set]))){
                         saveRDS(json_data[[set]],file = as.character(rds_file[set]))
+                        }
                 }
-         }
          else{
                 #Load rds 
                 if (file.exists(as.character(rds_file[set]))) {
                         print("Loading RDS file into object json_data")
+                        print(timestamp())
                         json_data[[set]] <<- readRDS(file=as.character(rds_file[set]))
+                        print(paste(set,"loaded into json_data"))
+                        print(timestamp())
+                        }
                 }
-         }
 
-}
+        }
 
-#Separate  "business" file into state files
+###Separate  "business" file into state files
+
+#Get unique states
 states <- getDistinct("business", "state")
+
+#Directory for states files
 states_list <- paste(directoryRaw,"state",sep="/")
 if(!dir.exists(states_list)){dir.create(states_list)}
+
+#Precess for each state
 for (i in 1:nrow(states)) {
+        
+        #Get state string
         element <- states[i,1]
-         dir_state <- paste(states_list,element,sep="/")
+        
+        print(paste("Processing state:", element))
+        print(timestamp())
+        
+        #Set directory state path 
+        dir_state <- paste(states_list,element,sep="/")
+        
          if (!dir.exists(as.character(dir_state))){
                  print(paste("Creating:",dir_state,sep=""))
+                 print(timestamp())
+                 
                  dir.create(dir_state)
-                 print(element)
          }
          
          #business files per State
          business_file_RDS <- paste(dir_state,"/","business",".RDS",sep="")
+        
+        #Check that indicates if business RDS file must be overwrite.
          overwrite <- FALSE
+        
          if(!file.exists(business_file_RDS) || overwrite){
+                 
+                 #Get only data from business into that state
                  aux <- getDataFilteredByState(object="business", filter=element)
+                 
+                 print("Saving RDS file business:")
+                 print(timestamp())
+                 
                  saveRDS(object= aux,file = business_file_RDS)
          }
          
          #Checkin files per business per State
-         overwrite_checkin <- FALSE
-         checkin_file_RDS <- paste(dir_state,"/","checkin",".RDS",sep="")
-         if((!file.exists(checkin_file_RDS) || overwrite_checkin) && file.exists(business_file_RDS)){
-                aux <- readRDS(business_file_RDS)
-                json_data[["checkin"]] %>% 
-                        semi_join(aux, by = "business_id") -> aux_checkin
-                saveRDS(object= aux_checkin,file = checkin_file_RDS)
-                 
-         }
-         
-         #Checkin files per business per State
-         createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
-         
-#          overwrite_tip <- FALSE
-#          tip_file_RDS <- paste(dir_state,"/","tip",".RDS",sep="")
-#          if((!file.exists(tip_file_RDS) || overwrite_tip) && file.exists(business_file_RDS)){
-#                  aux <- readRDS(business_file_RDS)
-#                  json_data[["tip"]] %>% 
-#                          semi_join(aux, by = "business_id") -> aux_tip
-#                  saveRDS(object= aux_tip,file = tip_file_RDS)
-#                  
-#          }
-         
+         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="checkin")
+        
+         #Tip files per business per State
+         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
+
+        #Review files per business per State
+        createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
 }
 
-#Filter and save
+
+###################################
+#Process Review file
+#1.Set block size: 
+##use r_limit
+#2.Point to initial block
+#3.Read block
+#4.Save block into file RDS
+#5.Final block?
+#5.NO.GOTO 3
+###################################
+
+#Set file path
+basePath2 <- paste(directoryRaw, "yelp_dataset_challenge_academic_dataset/yelp_academic_dataset_", sep = "/")
+file_review <- paste(basePath2, "review.json", sep="")
+
+#Get file length
+#file_len <- length(readLines(file_review))
+file_len <- 1569264
+print(paste("File length:", file_len))
+print(timestamp())
+
+library(readr)
+block_count = 1
+begin_block = 0
+
+while(begin_block < file_len){
+        
+        end_block = begin_block + r_limit
+        
+        if(file_len<end_block) {end_block = r_limit}
+        
+        print(paste("Block:", block_count))
+        print(paste("Block's begin:", begin_block+1))
+        print(paste("Block's end:", end_block))
+        
+        data <- fromJSON(paste("[",paste(read_lines(file=as.character(json_file[set]), skip = begin_block, 
+                                                    n_max=r_limit), 
+                                         collapse=","),"]"), simplifyDataFrame = TRUE)
+        review_data <- flatten(data)
+                         
+        file_review_RDS <- paste(basePath2, "review_", as.character(block_count),".rds", sep="")
+        print(file_review_RDS)
+        saveRDS(review_data, file=as.character(file_review_RDS))
+        
+        begin_block = end_block
+        block_count = block_count + 1 
+
+        
+        
+}
 
 
 
 }
 
 createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin"){
+        
+        print(paste("File to generate",dataset))
+        
         file_RDS <- paste(dir,"/",dataset,".RDS",sep="")
         if((!file.exists(file_RDS) || overwrite) && file.exists(bs_file_RDS)){
                 aux <- readRDS(bs_file_RDS)
                 json_data[[dataset]] %>% 
                         semi_join(aux, by = "business_id") -> aux_data
+                
+                print(paste("Saving RDS file business:",dataset))
+                print(timestamp())
+                
                 saveRDS(object= aux_data,file = file_RDS)
                 
+        }
+        else{
+                if(file.exists(file_RDS)){print("File RDS exists")}
+                if(!file.exists(bs_file_RDS)){print("File business RDS doesn't exists")}
+                print(timestamp())
         }
         
 }
