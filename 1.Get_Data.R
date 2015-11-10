@@ -152,15 +152,18 @@ for (i in 1:nrow(states)) {
         #Review files per business per State
         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
          
-#          overwrite_tip <- FALSE
-#          tip_file_RDS <- paste(dir_state,"/","tip",".RDS",sep="")
-#          if((!file.exists(tip_file_RDS) || overwrite_tip) && file.exists(business_file_RDS)){
-#                  aux <- readRDS(business_file_RDS)
-#                  json_data[["tip"]] %>% 
-#                          semi_join(aux, by = "business_id") -> aux_tip
-#                  saveRDS(object= aux_tip,file = tip_file_RDS)
-#                  
-#          }
+
+        ###################################
+        #Process Review file
+        #1.Set block size
+        #block_size = 
+        #2.Point to initial block
+        #3.Read block
+        #4.Save block into file RDS
+        #5.Final block?
+        #5.NO.GOTO 3
+        ###################################
+        
          
 }
 
