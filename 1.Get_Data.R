@@ -183,7 +183,7 @@ while(begin_block < file_len){
         
         end_block = begin_block + r_limit
         
-        if(file_len<end_block) {end_block = r_limit}
+        if(file_len<end_block) {end_block = file_len}
         
         print(paste("Block:", block_count))
         print(paste("Block's begin:", begin_block+1))
