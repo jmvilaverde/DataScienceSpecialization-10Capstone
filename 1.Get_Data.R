@@ -209,10 +209,11 @@ for (i in 1:nrow(states)) {
         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
 
         #TODO: Review files per business per State
-        createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
+        createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
         
         #TODO: user files
-        
+        #Not necessary for our analysis
+        #createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="user")
 }
 
 }
@@ -228,10 +229,10 @@ createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin")
         #Check existence of files
         if(file.exists(file_RDS)&& !overwrite){
                 print("File RDS exists")
-                return}
+                return()}
         if(!file.exists(bs_file_RDS)){
                 print("File business RDS doesn't exists")
-                return}
+                return()}
         
         #read business file into directory
         #Only business from this State
