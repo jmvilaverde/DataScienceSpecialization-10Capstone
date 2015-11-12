@@ -209,7 +209,7 @@ for (i in 1:nrow(states)) {
         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
 
         #TODO: Review files per business per State
-        createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
+        createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
         
         #TODO: user files
         
@@ -219,30 +219,60 @@ for (i in 1:nrow(states)) {
 
 createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin"){
         
+        print(timestamp())
         print(paste("File to generate",dataset))
         
-        
-        #TODO: if dataset = "review then
-#         files <- list.files(path="data/raw/yelp_dataset_challenge_academic_dataset", pattern="yelp_academic_dataset_review_")
-#         files[1]
-         
+        #File destiny for data
         file_RDS <- paste(dir,"/",dataset,".RDS",sep="")
-        if((!file.exists(file_RDS) || overwrite) && file.exists(bs_file_RDS)){
-                aux <- readRDS(bs_file_RDS)
-                json_data[[dataset]] %>% 
-                        semi_join(aux, by = "business_id") -> aux_data
-                
-                print(paste("Saving RDS file business:",dataset))
+        
+        #Check existence of files
+        if(file.exists(file_RDS)&& !overwrite){
+                print("File RDS exists")
+                return}
+        if(!file.exists(bs_file_RDS)){
+                print("File business RDS doesn't exists")
+                return}
+        
+        #read business file into directory
+        #Only business from this State
+        aux <- readRDS(bs_file_RDS)
+        
+        #TODO: 
+        if (dataset == "review"){
+         files <- list.files(path="data/raw/yelp_dataset_challenge_academic_dataset", pattern="yelp_academic_dataset_review_")
+         
+         #Initialize data_filtered
+         data_filtered = list()
+         
+         for(file in files){
+                 
+                file_to_process <- paste("data/raw/yelp_dataset_challenge_academic_dataset",file,sep="/")
                 print(timestamp())
-                
-                saveRDS(object= aux_data,file = file_RDS)
-                
+                print(paste("Read file:",file_to_process))
+                #Read file
+                temp_data <- readRDS(file_to_process)
+                #Filter file
+                temp_data %>% semi_join(aux, by = "business_id") -> temp_data_filtered
+                nrow(temp_data_filtered)
+                #Append to list
+                data_filtered <- list(data_filtered, temp_data_filtered)
+                nrow(data_filtered)
+                     
+         }
         }
         else{
-                if(file.exists(file_RDS)){print("File RDS exists")}
-                if(!file.exists(bs_file_RDS)){print("File business RDS doesn't exists")}
-                print(timestamp())
-        }
+        
+                data_to_filter <- json_data[[dataset]]
+                
+                data_to_filter %>% 
+                                semi_join(aux, by = "business_id") -> data_filtered
+        }                
+                        
+                        print(paste("Saving RDS file business:",dataset))
+                        print(timestamp())
+                        
+                        saveRDS(object= data_filtered,file = file_RDS)
+                        
         
 }
 
