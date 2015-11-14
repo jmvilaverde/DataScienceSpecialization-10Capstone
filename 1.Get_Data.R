@@ -166,13 +166,14 @@ states <- getDistinct("business", "state")
 states_list <- paste(directoryRaw,"state",sep="/")
 if(!dir.exists(states_list)){dir.create(states_list)}
 
+number_of_states <- nrow(states)
 #Process for each state
-for (i in 1:nrow(states)) {
+for (i in 1:number_of_states) {
         
         #Get state string
         element <- states[i,1]
         
-        print(paste("Processing state:", element))
+        print(paste("Processing state:", element, ". ",i/number_of_states,"% of progress."))
         print(timestamp())
         
         #Set directory state path 
@@ -208,8 +209,11 @@ for (i in 1:nrow(states)) {
         #Tip files per business per State
         createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="tip")
 
-        #TODO: Review files per business per State
-        createFileRDSbyState(overwrite=FALSE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
+        #Review files per business per State
+        createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
+        
+        #Create files for one State
+        #if(element=="AZ") createFileRDSbyState(overwrite=TRUE, dir=dir_state, bs_file_RDS=business_file_RDS, dataset="review")
         
         #TODO: user files
         #Not necessary for our analysis
@@ -242,9 +246,7 @@ createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin")
         if (dataset == "review"){
          files <- list.files(path="data/raw/yelp_dataset_challenge_academic_dataset", pattern="yelp_academic_dataset_review_")
          
-         #Initialize data_filtered
-         data_filtered = list()
-         
+         counter = 1
          for(file in files){
                  
                 file_to_process <- paste("data/raw/yelp_dataset_challenge_academic_dataset",file,sep="/")
@@ -255,8 +257,13 @@ createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin")
                 #Filter file
                 temp_data %>% semi_join(aux, by = "business_id") -> temp_data_filtered
                 nrow(temp_data_filtered)
-                #Append to list
-                data_filtered <- list(data_filtered, temp_data_filtered)
+                #Create list or append to list if it exists
+                if(counter == 1) { 
+                        data_filtered <- temp_data_filtered
+                        counter = counter + 1
+                        }
+                else{   data_filtered <- mapply(c, data_filtered, temp_data_filtered, SIMPLIFY = FALSE)}
+                
                 nrow(data_filtered)
                      
          }
@@ -272,7 +279,7 @@ createFileRDSbyState <- function(overwrite, dir, bs_file_RDS, dataset="checkin")
                         print(paste("Saving RDS file business:",dataset))
                         print(timestamp())
                         
-                        saveRDS(object= data_filtered,file = file_RDS)
+                        saveRDS(object= as.data.frame(data_filtered),file = file_RDS)
                         
         
 }
