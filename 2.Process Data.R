@@ -55,6 +55,36 @@ getDatafromRDS <- function(dir="data/raw/state", state="AZ", dataset="business")
 
 }
 
+getDataFiltered <- function(dataset="business", state_parameter=NULL, filter_column=NULL, filter_criteria=NULL, colname=NULL){
+        
+        states <- list_states
+        if(!is.null(state_parameter)) states <- state_parameter
+        
+        initial = TRUE
+        for(state in states){
+                
+                aux_data <<- getDatafromRDS(dir_states, state, dataset)
+                
+                if(!is.null(filter_column) && !is.null(filter_criteria)){
+                        
+                        aux_data <- aux_data[aux_data[,filter_column]%in%filter_criteria,]
+                }
+                
+                if (initial){
+                        data <- aux_data
+                        initial = FALSE
+                }
+                else{
+                        data <- mapply(c, data, aux_data, SIMPLIFY = FALSE)
+                }
+                
+        }
+        
+        data
+        
+        
+}
+
 countAttribute <- function(attribute="stars", data){
         library(dplyr)
         #col <- substitute(attribute)
@@ -105,16 +135,18 @@ createResumeTable <- function(dataset="business", filter_column=NULL, filter_cri
         resumeTable <- rbind(resumeTable, aux)
         
         colnames(resumeTable) <- c("state", colname)
+        log("Resume table")
         print(resumeTable)
         resumeTable
 }
 
-createGlobalResumeTable <- function(state=NULL){
+createGlobalResumeTable <- function(file_to_analyze=NULL){
+        
         initial <- TRUE
+        files <- file_types 
+        if(!is.null(file_to_analyze)) files <- file_to_analyze
         
-        files <- ifelse(!is.null(state), state, file_types)
-        
-        for (file in file_types){
+        for (file in files){
                 if(initial){
                         global_table <- createResumeTable(dataset=file)
                         initial = FALSE
@@ -123,13 +155,18 @@ createGlobalResumeTable <- function(state=NULL){
                         createResumeTable(dataset=file) %>% 
                                 inner_join(global_table,by="state") -> global_table
                 }
-                        #Add >=4 stars
-        createResumeTable(dataset=file, filter_column="stars", filter_criteria=c(4, 4.5, 5), colname=">=4 stars") %>% 
-                inner_join(global_table,by="state") -> global_table
+                        
+                #Add >=4 stars
+                if (file %in% c("business", "review")){        
+                        createResumeTable(dataset=file, filter_column="stars", filter_criteria=c(4, 4.5, 5), colname=">=4 stars") %>% 
+                        inner_join(global_table,by="state") -> global_table
+                        createResumeTable(dataset=file, filter_column="stars", filter_criteria=c(1, 1.5, 2, 2.5), colname="<3 stars") %>% 
+                                inner_join(global_table,by="state") -> global_table
+                }
         }
         
 
-        
+        log("Global table")
         print(global_table)
         global_table
 }
