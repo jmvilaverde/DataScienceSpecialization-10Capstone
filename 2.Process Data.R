@@ -509,16 +509,61 @@ textAnalyst <- function(){
                 data
         }
         
-        getTestPhrase <- function(){
+        getPhrase <- function(){
                 data <- getData()
                 test_phrase <<- as.character(data[1,"text"])
                 print(test_phrase)
                 test_phrase
         }
         
+        #Function to count words in a phrase
+        #Input phrase, n-grams to count
+        #Output data.frame(words, ngram, frequency)
+        countWords <- function(phrase, ngrams=c(1:3)){
+                print(phrase)
+                #Remove commas, dots, and transform to uppercase
+                aux <- gsub(",",".", phrase, fixed = TRUE)
+                aux <- gsub(".","", aux, fixed = TRUE)
+                aux <- tolower(aux)
+                
+                list_aux <- strsplit(aux, " ")[[1]]
+                list_aux <- list_aux[list_aux != ""]
+                
+                len_list_aux <- length(list_aux)
+                initial <- TRUE
+                
+                #apply for each ngram
+                for(ngram in ngrams){
+                        #Go throught all the list
+                        for(i in 1:len_list_aux-ngram+1){
+                                #get the ngrams
+                                for(j in 1:ngram){
+                                        if(j==1) {
+                                                aux_gram <- list_aux[i+j-1]
+                                        }
+                                        else{
+                                                aux_gram <- paste(aux_gram,list_aux[i+j-1], sep=" ")        
+                                        }
+                                        
+                                }
+                                if(initial){
+                                        temp_table <- c(aux_gram,ngram,1)
+                                        initial <- FALSE
+                                }
+                                else{temp_table <- rbind(temp_table, c(aux_gram,ngram,1))}
+                                print(c(aux_gram,ngram,1))
+                        }
+                }
+                #View(temp_table)
+                
+                
+                print(len_list_aux)
+                print(aux)
+        }
         
         list(getData=getData,
-             getTestPhrase=getTestPhrase)
+             getPhrase=getPhrase,
+             countWords=countWords)
 }
 
 
@@ -533,7 +578,8 @@ mainData <<- data()
 mainTotals <<- totals()
 mainTextAnalyst <<- textAnalyst()
 
-tp <<- mainTextAnalyst$getTestPhrase()
+tp <<- mainTextAnalyst$getPhrase()
+tp_sepparate <<- mainTextAnalyst$countWords(tp)
 
 #data <- mainCategories$getUniqueCategories()
 
