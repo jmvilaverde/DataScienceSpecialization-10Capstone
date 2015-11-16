@@ -240,12 +240,12 @@ data <- function(){
                         
                 }
                 
-                if(dataset=="review") {
-                        as.data.frame(data)
-                }
-                else{
+#                 if(dataset=="review") {
+#                         as.data.frame(data)
+#                 }
+#                 else{
                         data
-                }
+#                 }
                 
                 
                 
@@ -496,6 +496,32 @@ createGlobalResumeTable <- function(file_to_analyze=NULL){
 }
 ###End totals object
 
+###Text analyst object
+textAnalyst <- function(){
+        
+        data <- data.frame()
+        test_phrase <- as.character()
+        
+        getData <- function(state_filter = "NC"){
+                data <- mainData$getDataFiltered(dataset="review", state_parameter=state_filter)
+                
+                #Filter data
+                data
+        }
+        
+        getTestPhrase <- function(){
+                data <- getData()
+                test_phrase <<- as.character(data[1,"text"])
+                print(test_phrase)
+                test_phrase
+        }
+        
+        
+        list(getData=getData,
+             getTestPhrase=getTestPhrase)
+}
+
+
 #Main function
 main <- function(){
         
@@ -505,9 +531,14 @@ mainController <<- controller()
 mainCategories <<- categories()
 mainData <<- data()
 mainTotals <<- totals()
+mainTextAnalyst <<- textAnalyst()
+
+tp <<- mainTextAnalyst$getTestPhrase()
 
 #data <- mainCategories$getUniqueCategories()
 
-mainController$mainMenu()
+#mainController$mainMenu()
+
+
 
 }
