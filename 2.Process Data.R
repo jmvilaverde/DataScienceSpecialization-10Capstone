@@ -419,6 +419,58 @@ data <- function(){
 }
 ###End data object
 
+### data object model
+modelController <- function(){
+                
+        #Range in which an attribute is relevant for our model 
+        validity_range <- as.numeric(2.5)
+        
+        #Difference between have or not an attribute
+        validity_difference <- as.numeric(0.15)
+                
+        
+        #Function to create a model for a specifict State and category
+        createModelperState <- function(recalculate = FALSE, state_filter="BW", category_filter="Food"){
+                
+                file <- paste(dir_states,"/",state_filter,"/model_category_",category_filter,".RDS", sep="")
+                
+                if(file.exists(file) && !recalculate){
+                        model <- readRDS(file)
+                        return(model)
+                }
+                
+                #Get data
+                data <- mainData$getDatasetperCat(dataset = "business", category = category_filter, state_filter = state_filter)
+                colnames(data) <- make.names(names(data))
+                #data <- mainData$getDataFiltered(state_parameter = state_filter, category_filter = category_filter)
+                #Get relevant attributes
+                attributes <- mainData$getTotalsAttStars(overwrite=FALSE, state_filter = state_filter, 
+                                                          category = category_filter)
+                
+                attributes %>% mutate(attribute=gsub(" ", ".", attribute, fixed = TRUE)) %>%
+                        mutate(attribute=gsub("-", ".", attribute, fixed = TRUE)) %>%
+                        filter(state==state_filter, positive.over.total>validity_range, negative.over.total>validity_range,
+                                      (difference_avg>validity_difference | difference_avg<(-validity_difference))) -> attributes
+                
+                
+                #Create model
+                #test lm model
+                
+                attributes_concat <- paste(as.character(attributes$attribute), collapse= " + ")
+                print(attributes_concat)
+                formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
+                
+                #Create model
+                model <- lm(data = data, formula = formula)
+                
+                saveRDS(model, file = file)
+                model
+                
+        }
+        
+        list(createModelperState=createModelperState)
+}
+
 countAttribute <- function(attribute="stars", data){
         library(dplyr)
 
@@ -678,8 +730,12 @@ mainCategories <<- categories()
 mainData <<- data()
 mainTotals <<- totals()
 mainTextAnalyst <<- textAnalyst()
+mainModelController <<- modelController()
 
-datos <<- mainController$mainMenu()
+#datos <<- mainController$mainMenu()
+
+modelo <<- mainModelController$createModelperState(recalculate = TRUE, state_filter = "BW", category_filter = "Food")
+
 # datos <<- mainCategories$getBusinessCategories("BW")
 # datos_f <<- mainCategories$getUniqueCategories(state_filter="BW")
 # tp <<- mainTextAnalyst$getPhrase()
