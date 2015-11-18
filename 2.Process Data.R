@@ -430,6 +430,7 @@ modelController <- function(){
                 
         
         #Function to create a model for a specifict State and category
+        #Not good results, try to use other model instead of LM
         createModelperState <- function(recalculate = FALSE, state_filter="BW", category_filter="Food"){
                 
                 file <- paste(dir_states,"/",state_filter,"/model_category_",category_filter,".RDS", sep="")
@@ -452,22 +453,46 @@ modelController <- function(){
                         filter(state==state_filter, positive.over.total>validity_range, negative.over.total>validity_range,
                                       (difference_avg>validity_difference | difference_avg<(-validity_difference))) -> attributes
                 
-                
+                View(attributes)
                 #Create model
                 #test lm model
                 
                 attributes_concat <- paste(as.character(attributes$attribute), collapse= " + ")
                 print(attributes_concat)
                 formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
+                print(formula)
+                #Create model LM, GLM -> FAIL
+                #model <- lm(data = data, formula = formula)
                 
-                #Create model
-                model <- lm(data = data, formula = formula)
+                #Create a Cross validation
+                require(caret)
+                require(kernlab)
+                require(pROC)
+                
+                #Seed to be used to obtain the same results
+                set.seed(1525)
+                
+                #Create training and testingData
+                index <- createDataPartition(y=data$stars, p=0.8, list=FALSE)
+                trainingData <- data[index,]
+                testingData <- data[-index,]
+                
+                ##############
+                #Try LDA Model
+                
+                model <- train(formula, data = trainingData, method = "lda")
+                
+                prediction <- predict(model, testingData)
+                
+                confusionMatrixModel <- confusionMatrix(prediction, testingSet$classe)
+                print(confusionMatrixModel)
                 
                 saveRDS(model, file = file)
                 model
                 
         }
         
+
         list(createModelperState=createModelperState)
 }
 
