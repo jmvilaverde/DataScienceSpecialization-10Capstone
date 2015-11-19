@@ -23,98 +23,16 @@ list_states <- list_states[!grepl("resources",list_states)]
 #Files types
 file_types <- c("business", "checkin", "tip", "review")
 
+#Default state to be use as filter
+default_state <- "BW"
 
-log <- function(string){
-        #Print at console
-        print(paste(timestamp(),string))
-        
-        #TODO: Save on log
-}
 
-###controller object
-controller <- function(){
-        
-        cState_filter <- "BW"
-        
-        mainMenu <- function(){
-                print("1-Get all Attributes")
-                print("2-Get table attributes filtered by state and category")
-                s = 3
-                while(s<1||s>2){
-                        s <- as.integer(readline("Select option number:"))
-                }
-                
-                if(s==1) {
-                        data <<- mainData$getTotalsAttStars(overwrite=TRUE)
-                        View(data)
-                }
-                
-                if(s==2){
-                        state_selected <- askForState()
-                        category_selected <- askForCategory()
-                        data <<- mainData$getTotalsAttStars(overwrite=TRUE, state_filter = state_selected, category = category_selected)
-                        View(data)
-                        data
-                }
-                
-        }
-        
-        
-        ###
-        #Procedure in order to select a State
-        ###
-        askForState <- function(){
-        
-        index = 1
-        
-        for(state in list_states){
-                
-                print(paste(index,"-",state))
-                index = index + 1
-                
-                }
-        selection = index + 1
-        
-        while (selection > index || selection < 1) selection = as.integer(readline("Select state number:"))
-        
-        list_states[selection]
-        
-        }
-        
-        askForCategory <- function(){
-                
-#                 mainCategories$getUniqueCategories()[,"categories"] %>%
-#                         order_by(categories) -> list_categories
-                
-                list_categories <<- as.character(mainCategories$getUniqueCategories(state_filter="BW")[,"categories"])
-                
-                index = 1
-                
-                for(category in list_categories){
-                        
-                        print(paste(index,"-",category))
-                        index = index + 1
-                        
-                }
-                
-                View(list_categories)
-                
-                selection = index + 1
-                
-                while (selection > index || selection < 1) selection = as.integer(readline("Select category number:"))
-                
-                list_categories[selection]
-        }
-        
-        list(mainMenu=mainMenu,
-             askForState=askForState,
-             askForCategory=askForCategory)
-}
-###End controller object
-
-###categories object        
+###OBJECT: categories
+#Description: Object to manage extracting of categories and get unique categories
 categories <- function(){
         
+        #Function to get business categories from business.RDS file
+        #Input: state_filter to select the state to use as filter
         getBusinessCategories <- function(state_filter=NULL){
                 library(jsonlite)
                 
@@ -124,12 +42,8 @@ categories <- function(){
                 
              for(state in states){
                 
-                if(is.null(state_filter)){
-                        file_to_save <- paste(dir_resources,"categories.RDS",sep="/")
-                }
-                else{
-                        file_to_save <- paste(dir_states,state,"categories.RDS",sep="/")
-                }
+                if(is.null(state_filter)){file_to_save <- paste(dir_resources,"categories.RDS",sep="/")}
+                else{file_to_save <- paste(dir_states,state,"categories.RDS",sep="/")}
                 
                 if(file.exists(file_to_save)){
                         dataCat <- readRDS(file_to_save)
@@ -143,7 +57,7 @@ categories <- function(){
                 initial = TRUE
                 
                 for(i in 1:rows_dataset){
-                        log(paste("Processing categories: ",i," of ",rows_dataset))
+                        paste("Processing categories: ",i," of ",rows_dataset)
                         
                         aux <- flatten(as.data.frame(data[["categories"]][i]))
                         
@@ -180,10 +94,15 @@ categories <- function(){
                 
         }
         
+        #Function to get categories.
+        #Input: cat_to_search <- filter by category
+        #Input: state_filter <- filter by state
         getUniqueCategories <- function(cat_to_search=NULL, state_filter=NULL){
                 
+                #Get business categories from one state or all
                 data <- getBusinessCategories(state_filter=state_filter)
                 
+                #Processing data
                 data <- summary(data$categories)
                 
                 data <- data.frame(data)
@@ -193,6 +112,7 @@ categories <- function(){
                 colnames(data) <- c("categories", "number")
                 rownames(data) <- c(1:nrow(data))
                 
+                #Filter by cat_to_search
                 if(!is.null(cat_to_search)){
                         data <- data[grepl(cat_to_search,data$categories), ]
                 }
@@ -200,14 +120,8 @@ categories <- function(){
                 data
         }
         
-        getRelatedCategories <- function(category=NULL){
-                
-                #Return unique categories with the same business id
-        }
-        
         list(getBusinessCategories=getBusinessCategories,
-             getUniqueCategories=getUniqueCategories,
-             getRelatedCategories=getRelatedCategories)
+             getUniqueCategories=getUniqueCategories)
 }
 ###End categories object
 
@@ -216,22 +130,22 @@ data <- function(){
         
         dir_value <- "data/raw/state"
         
-        getDatafromRDS <- function(dir="data/raw/state", state="AZ", dataset="business"){
+        #Function to get data from RDS file
+        getDatafromRDS <- function(dir="data/raw/state", state=default_state, dataset="business"){
                 
+                #Set path, state directory and file name
                 file <- paste(dir,"/",state,"/",dataset,".RDS",sep="")
-                if(file.exists(file)) {
-                        # log(paste("Get data from:",file))
-                        return(readRDS(file))
-                }
-                else{
-                        log(paste("File doesn't exists:",file))
-                }
+                
+                #Get file
+                if(file.exists(file)) { return(readRDS(file)) }
+                else{ paste("File doesn't exists:",file) }
                 
         }
         
-        getDataFiltered <- function(dataset="business", state_parameter=NULL, filter_column=NULL, filter_criteria=NULL, 
-                                    colname=NULL){
+        #Function to get data from RDS filtered by a column and a filter criteria
+        getDataFiltered <- function(dataset="business", state_parameter=NULL, filter_column=NULL, filter_criteria=NULL){
                 
+                #Set state/s to get data from
                 states <- list_states
                 if(!is.null(state_parameter)) states <- state_parameter
                 
@@ -242,7 +156,7 @@ data <- function(){
                         
                         if(!is.null(filter_column) && !is.null(filter_criteria)){
                                 
-                                aux_data <- aux_data[aux_data[,filter_column]%in%filter_criteria,]
+                                aux_data <- aux_data[aux_data[,filter_column] %in% filter_criteria,]
                         }
                         
                         if (initial){
@@ -443,26 +357,40 @@ modelController <- function(){
                 #Get data
                 data <- mainData$getDatasetperCat(dataset = "business", category = category_filter, state_filter = state_filter)
                 colnames(data) <- make.names(names(data))
-                #data <- mainData$getDataFiltered(state_parameter = state_filter, category_filter = category_filter)
+                
                 #Get relevant attributes
-                attributes <- mainData$getTotalsAttStars(overwrite=FALSE, state_filter = state_filter, 
+                attributes_unformated <- mainData$getTotalsAttStars(overwrite=FALSE, state_filter = state_filter, 
                                                           category = category_filter)
                 
-                attributes %>% mutate(attribute=gsub(" ", ".", attribute, fixed = TRUE)) %>%
+                #Replace all spaces with dots and filter to only obtain relevant results
+                attributes_unformated %>% mutate(attribute=gsub(" ", ".", attribute, fixed = TRUE)) %>%
                         mutate(attribute=gsub("-", ".", attribute, fixed = TRUE)) %>%
                         filter(state==state_filter, positive.over.total>validity_range, negative.over.total>validity_range,
-                                      (difference_avg>validity_difference | difference_avg<(-validity_difference))) -> attributes
+                                      (difference_avg>validity_difference | difference_avg<(-validity_difference))) -> attributes_unformated
                 
-                View(attributes)
+                View(attributes_unformated)
+                
+                #Transform data to use only relevant columns
+                data_formated <- data[colnames(data) %in% attributes_unformated$attribute | colnames(data) %in% c("stars", "business_id")]
+                data_formated[is.na(data_formated) | !data_formated] <- "NO"
+                data_formated[data_formated=="NULL"] <- "NO"
+                data_formated[data_formated==TRUE] <- "YES"
+                data_formated[data_formated==TRUE] <- "YES"
+                data_formated[data_formated[colnames(data) %in% attributes_unformated$attribute]>0] <- "YES"
+                
+                # data_formated %>% mutate(attributes.Accepts.Credit.Cards=as.logical(attributes.Accepts.Credit.Cards)) -> data_formated
+                
+                View(data_formated)
                 #Create model
-                #test lm model
-                
-                attributes_concat <- paste(as.character(attributes$attribute), collapse= " + ")
+                #Create formula
+                attributes_concat <- paste(as.character(attributes_unformated$attribute), collapse= " + ")
                 print(attributes_concat)
                 formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
                 print(formula)
-                #Create model LM, GLM -> FAIL
-                #model <- lm(data = data, formula = formula)
+                
+                #Create model LM, GLM -> FAIL, R-squared value so low
+                model_ineffective <- lm(data = data_formated, formula = formula)
+                model_ineffective <- glm(data = data_formated, formula = formula)
                 
                 #Create a Cross validation
                 require(caret)
@@ -472,21 +400,29 @@ modelController <- function(){
                 #Seed to be used to obtain the same results
                 set.seed(1525)
                 
+                
                 #Create training and testingData
-                index <- createDataPartition(y=data$stars, p=0.8, list=FALSE)
-                trainingData <- data[index,]
-                testingData <- data[-index,]
+                index <- createDataPartition(y=data_formated$stars, p=0.8, list=FALSE)
+                trainingData <- data_formated[index,]
+                testingData <- data_formated[-index,]
                 
                 ##############
-                #Try LDA Model
+                #Try LDA Model -> FAIL, worng model type for regression
+                #Try RF Model
+                ##############
+                View(trainingData)
                 
-                model <- train(formula, data = trainingData, method = "lda")
+                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=100) 
+#                                trControl = trainControl(method = "cv", number = 5),
+#                                prox = TRUE, allowParallel = TRUE)
+#                 
                 
-                prediction <- predict(model, testingData)
                 
-                confusionMatrixModel <- confusionMatrix(prediction, testingSet$classe)
-                print(confusionMatrixModel)
-                
+#                 prediction <- predict(model, testingData)
+#                 
+#                 confusionMatrixModel <- confusionMatrix(prediction, testingData$stars)
+#                 print(confusionMatrixModel)
+#                 
                 saveRDS(model, file = file)
                 model
                 
