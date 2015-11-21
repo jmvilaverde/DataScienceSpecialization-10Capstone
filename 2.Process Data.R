@@ -12,8 +12,8 @@ library(dplyr)
 #Set directory where it's to be stored
 dir_states <- "data/raw/state"
 
+#Set directory for some RDS files with auxiliary processed data
 dir_process <- "data/raw/process"
-
 dir_resources <- "data/raw/resources"
 
 #Get States
@@ -24,15 +24,17 @@ list_states <- list_states[!grepl("resources",list_states)]
 file_types <- c("business", "checkin", "tip", "review")
 
 #Default state to be use as filter
-default_state <- "BW"
+default_state <- "NC"
 
 
-###OBJECT: categories
+### Object Categories
 #Description: Object to manage extracting of categories and get unique categories
 categories <- function(){
         
+        ###
         #Function to get business categories from business.RDS file
         #Input: state_filter to select the state to use as filter
+        ###
         getBusinessCategories <- function(state_filter=NULL){
                 library(jsonlite)
                 
@@ -46,6 +48,7 @@ categories <- function(){
                 else{file_to_save <- paste(dir_states,state,"categories.RDS",sep="/")}
                 
                 if(file.exists(file_to_save)){
+                        print(paste("File exists:",file_to_save))
                         dataCat <- readRDS(file_to_save)
                         return(dataCat)
                 }
@@ -88,15 +91,21 @@ categories <- function(){
                 dataCat <- data.frame(id, business, categories)
                 colnames(dataCat) <- c("id", "business_id", "categories")
                 
+                print(paste("Save categories file:",file_to_save))
                 saveRDS(dataCat, file=file_to_save)
              }
                 dataCat
                 
         }
+        ###
+        #End function
+        ###
         
+        ###
         #Function to get categories.
-        #Input: cat_to_search <- filter by category
-        #Input: state_filter <- filter by state
+        #Input: cat_to_search, is a filter by category
+        #Input: state_filter, is a filter by state
+        ###
         getUniqueCategories <- function(cat_to_search=NULL, state_filter=NULL){
                 
                 #Get business categories from one state or all
@@ -119,18 +128,23 @@ categories <- function(){
                 
                 data
         }
+        ###
+        #End function
+        ###
         
         list(getBusinessCategories=getBusinessCategories,
              getUniqueCategories=getUniqueCategories)
 }
 ###End categories object
 
-### data object
+### Object Data
 data <- function(){
         
         dir_value <- "data/raw/state"
         
+        ###
         #Function to get data from RDS file
+        ###
         getDatafromRDS <- function(dir="data/raw/state", state=default_state, dataset="business"){
                 
                 #Set path, state directory and file name
@@ -141,8 +155,13 @@ data <- function(){
                 else{ paste("File doesn't exists:",file) }
                 
         }
+        ###
+        #End function
+        ###
         
+        ###
         #Function to get data from RDS filtered by a column and a filter criteria
+        ###
         getDataFiltered <- function(dataset="business", state_parameter=NULL, filter_column=NULL, filter_criteria=NULL){
                 
                 #Set state/s to get data from
@@ -179,7 +198,13 @@ data <- function(){
                 
                 
         }
+        ###
+        #End function
+        ###
         
+        ###
+        #Function to obtain relation between stars, attribute, state and category
+        ###
         getRelationAttStars <- function(attribute=NULL,state_filter=NULL, 
                                         dataset="business", category = NULL){
                 
@@ -232,7 +257,13 @@ data <- function(){
 
                 
         }
+        ###
+        #End function
+        ###
         
+        ###
+        #Function to get total values
+        ###
         getTotalsAttStars <- function(overwrite = FALSE, state_filter = NULL, category = NULL){
                 
                 if(is.null(state_filter)) {
@@ -304,7 +335,13 @@ data <- function(){
                 
                 
         }
-
+        ###
+        #End function
+        ###
+        
+        ###
+        #Function to obtain a data set with data from business of a specific category
+        ###
         getDatasetperCat <- function(dataset="business", category="Food", state_filter=NULL){
                 library(dplyr)
                 
@@ -324,6 +361,9 @@ data <- function(){
                 print(nrow(aux_data))
                 aux_data
         }
+        ###
+        #End function
+        ###
         
         list(getDatafromRDS=getDatafromRDS,
              getDataFiltered=getDataFiltered,
@@ -331,20 +371,130 @@ data <- function(){
              getRelationAttStars=getRelationAttStars, 
              getTotalsAttStars=getTotalsAttStars)
 }
-###End data object
+###End Object Data
 
-### data object model
+### Object Model
 modelController <- function(){
-                
-        #Range in which an attribute is relevant for our model 
-        validity_range <- as.numeric(2.5)
         
-        #Difference between have or not an attribute
-        validity_difference <- as.numeric(0.15)
+        ###
+        #Function to init global constants and variables.
+        ###
+        init <- function(){
                 
+                #Range in which an attribute is relevant for our model 
+                validity_range <<- as.numeric(1)
         
+                #Difference between have or not an attribute
+                validity_difference <<- as.numeric(0.1)
+        }
+        ###
+        # End function
+        ###
+
+        ###
+        #Function to transform and clean the data for the model
+        ###
+        transformAndClean <- function(data, attributes){
+                
+                data_formated <- data[colnames(data) %in% attributes | colnames(data) %in% c("stars", "business_id")]
+                
+                #Configure NO values to transform into factors
+                data_formated[is.na(data_formated)] <- "NO"
+                data_formated[data_formated=="NULL"] <- "NO"
+                data_formated[data_formated==FALSE] <- "NO"
+                
+                #Configure YES values
+                data_formated[data_formated==TRUE] <- "YES"
+                
+                
+                #data_formated[,grepl("attributes", names(data_formated))] <- flatten(data_formated[,grepl("attributes", names(data_formated))])
+                
+                #Problem to transform all attributes into factors solved with information from URL:
+                #http://grokbase.com/t/r/r-help/12614bx2jd/r-redefine-multiple-columns-using-grep-as-factor-variables
+                #data_formated[,grepl("attributes", names(data_formated))] <- lapply(data_formated[,grepl("attributes", names(data_formated))], as.factor)
+                
+                #View(data_formated)
+                
+                data_formated
+        }
+        ###
+        #End Function
+        ###
+        
+        #############
+        ############
+        #TODO!!!!!!!
+        ############
+        ############
+        
+        
+        ###
+        #Function to add top possitive and negative words as atributes
+        ###
+        addWordsAttributes <- function(data, state_filter, category_filter){
+                #Top-n words
+                top_n = 10
+                
+                #Get words for business
+                data_businessWords <<- mainTextAnalyst$getDataCountOfWords(state_filter=state_filter, category_filter = category_filter)
+                #Get top words
+                data_topPositiveWords <<- mainTextAnalyst$getTopNGrams(stars_filter=c(4, 4.5, 5), state_filter=state_filter, category_filter = category_filter, top = top_n)
+                data_topPositiveWords[,"order_positive"] <<- c(1:top_n)
+                data_topNegativeWords <<- mainTextAnalyst$getTopNGrams(stars_filter=c(1, 1.5, 2, 2.5), state_filter=state_filter, category_filter = category_filter, top = top_n)
+                data_topNegativeWords[,"order_negative"] <<- c(1:top_n)
+                View(data_topPositiveWords)
+                View(data_topNegativeWords)
+                
+                
+                
+                #Check if word exists for business
+                data_businessWords %>% inner_join(data_topPositiveWords, by="word") %>% select(business_id, order_positive) -> table_pos
+                data_businessWords %>% inner_join(data_topNegativeWords, by="word") %>% select(business_id, order_negative) -> table_neg
+                
+                for(i in 1:top_n) { 
+                        table_pos[,paste("Attribute.Pos.Word.",i,sep="")] <- table_pos[,"order_positive"]==i
+                        table_neg[,paste("Attribute.Neg.Word.",i,sep="")] <- table_neg[,"order_negative"]==i
+                }
+                table_pos <<- table_pos
+                
+                initial <- TRUE
+                
+                print("Data business words")
+                print(unique(data_businessWords[,"business_id"]))
+                
+                for(business in unique(table_pos[,"business_id"])){
+                                aux_table <- business
+                                aux_table <- data.frame(aux_table)
+                                colnames(aux_table) <- "business_id"
+                        
+                        for(i in 1:top_n) {
+                                        aux_table <- cbind(aux_table, sum(table_pos[table_pos[,"business_id"] == business,paste("Attribute.Pos.Word.",i,sep="")]) > 0)
+                                        colnames(aux_table)[i+1] <- paste("Attribute.Pos.Word.",i,sep="")
+
+                        }
+                        
+                        if(initial){
+                                table_pos_with_data <- aux_table
+                                initial = FALSE
+                        }
+                        else{
+                                table_pos_with_data <- rbind(table_pos_with_data,aux_table)
+                        }
+                        rm(aux_table)
+                        
+
+                }
+                
+                View(table_pos_with_data)
+                #For each word create an attribute
+                #View(data_words)
+                #Return data
+        }
+                
+        ###
         #Function to create a model for a specifict State and category
-        #Not good results, try to use other model instead of LM
+        #No good results, try to use other model instead of LM
+        ###
         createModelperState <- function(recalculate = FALSE, state_filter="BW", category_filter="Food"){
                 
                 file <- paste(dir_states,"/",state_filter,"/model_category_",category_filter,".RDS", sep="")
@@ -356,6 +506,11 @@ modelController <- function(){
                 
                 #Get data
                 data <- mainData$getDatasetperCat(dataset = "business", category = category_filter, state_filter = state_filter)
+                
+                data <- addWordsAttributes(data, state_filter = state_filter, category_filter = category_filter)
+                
+                #Put a new variable, rate "GOOD" >4 stars, "BAD" < 3 stars
+                
                 colnames(data) <- make.names(names(data))
                 
                 #Get relevant attributes
@@ -371,16 +526,8 @@ modelController <- function(){
                 View(attributes_unformated)
                 
                 #Transform data to use only relevant columns
-                data_formated <- data[colnames(data) %in% attributes_unformated$attribute | colnames(data) %in% c("stars", "business_id")]
-                data_formated[is.na(data_formated) | !data_formated] <- "NO"
-                data_formated[data_formated=="NULL"] <- "NO"
-                data_formated[data_formated==TRUE] <- "YES"
-                data_formated[data_formated==TRUE] <- "YES"
-                data_formated[data_formated[colnames(data) %in% attributes_unformated$attribute]>0] <- "YES"
+                data_formated <- transformAndClean(data, attributes_unformated$attribute)
                 
-                # data_formated %>% mutate(attributes.Accepts.Credit.Cards=as.logical(attributes.Accepts.Credit.Cards)) -> data_formated
-                
-                View(data_formated)
                 #Create model
                 #Create formula
                 attributes_concat <- paste(as.character(attributes_unformated$attribute), collapse= " + ")
@@ -389,9 +536,9 @@ modelController <- function(){
                 print(formula)
                 
                 #Create model LM, GLM -> FAIL, R-squared value so low
-                model_ineffective <- lm(data = data_formated, formula = formula)
-                model_ineffective <- glm(data = data_formated, formula = formula)
-                
+#                 model_ineffective <- lm(data = data_formated, formula = formula)
+#                 model_ineffective <- glm(data = data_formated, formula = formula)
+#                 
                 #Create a Cross validation
                 require(caret)
                 require(kernlab)
@@ -412,24 +559,31 @@ modelController <- function(){
                 ##############
                 View(trainingData)
                 
-                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=100) 
+                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=500) 
 #                                trControl = trainControl(method = "cv", number = 5),
 #                                prox = TRUE, allowParallel = TRUE)
 #                 
                 
+                View(testingData)
+                prediction <- predict(model, testingData)
+                prediction <- as.character(prediction)
                 
-#                 prediction <- predict(model, testingData)
-#                 
-#                 confusionMatrixModel <- confusionMatrix(prediction, testingData$stars)
-#                 print(confusionMatrixModel)
-#                 
+                confusionMatrixModel <- confusionMatrix(prediction, testingData$stars)
+                print(confusionMatrixModel)
+                
+                print(prediction)
+                print(testingData$stars)
+                
                 saveRDS(model, file = file)
                 model
                 
         }
         
 
-        list(createModelperState=createModelperState)
+        list(init=init,
+             transformAndClean=transformAndClean,
+             addWordsAttributes=addWordsAttributes,
+             createModelperState=createModelperState)
 }
 
 countAttribute <- function(attribute="stars", data){
@@ -584,6 +738,7 @@ textAnalyst <- function(){
                                         
                                 if(initial){
                                         temp_table <- c(aux_gram,ngram,1)
+                                        temp_table <- rbind(temp_table, NULL)
                                         initial <- FALSE
                                 }
                                 else{
@@ -593,22 +748,33 @@ textAnalyst <- function(){
                 }
                 #Transform table class
                 temp_table <- data.frame(temp_table)
-                                
                 colnames(temp_table) <- c("word", "ngram", "number")
                 
                 #Get totals
                 temp_table %>% 
                         select(word, ngram, number) %>% 
+                        mutate(number=as.numeric(number)) %>%
                         group_by(word, ngram) %>% 
                         summarize(total_number=sum(number)) %>% 
                         arrange(desc(total_number)) -> table
                 
                 table
         }
+        ###
+        #End Function
+        ###
         
+        ###
+        #Function to create a file with the count of words
+        ###
         getDataCountOfWords <- function(overwrite=FALSE, state_filter="CA", category_filter=NULL){
                 
-                if(is.null(category_filter)) cat_file_name = "all"
+                if(is.null(category_filter)) {
+                        cat_file_name = "all"
+                }
+                else{
+                        cat_file_name = category_filter
+                }
                 
                 #Set file name and path
                 file <- paste(dir_states,"/",state_filter,"/wordsCount_",cat_file_name,".RDS", sep="")
@@ -617,48 +783,86 @@ textAnalyst <- function(){
                 if(file.exists(file)&&!overwrite) {
                         print("File exists")
                         return(readRDS(file))
-                }
+                        }
+                
                 
                 #Get review data
-                log(paste("Loading data from State:",state_filter))
+                print(paste("Loading data from State:",state_filter))
                 aux <- mainData$getDataFiltered(dataset="review", state_parameter=state_filter)
                 aux %>% select(business_id, review_id, stars, type, text) -> aux
                 #%>% filter(business_id %in% )
                 
-                        
+                #Part data into blocks in order to speed up processing
+                #Block size of 100 allows a speed of 1 block processed every 1,5 seconds
+                #
+                print(paste("Number of rows:",nrow(aux)))
+                block_size = 100
+                
+                block_count = 1
+                begin_block_pos = 1
+                
+                nrows_aux <- nrow(aux)
                 
                 #Apply countWords for each review
-                log("Start processing texts...")
-                nrows_aux <- nrow(aux)
-                initial <- TRUE
-                for(i in 1:nrows_aux){
-                        log(paste("Processed:",(i/nrows_aux*100),"%"))
+                print("Start processing texts...")
+                print(paste("Number of total rows:",nrows_aux))
+                
+                while(begin_block_pos<nrows_aux){
                         
-                        #Get text from register and countWords
-                        aux_text <- aux[i,"text"]
-                        aux_table_counts <- countWords(aux_text)
+                        end_block_pos = begin_block_pos + block_size - 1
+                        if(end_block_pos>nrows_aux) end_block_pos = nrows_aux
+                        print(paste("Block:",block_count,": initial position = ",begin_block_pos,", final position = ",end_block_pos))
                         
-                        #Add columns with data of review to data from countWords
-                        aux[i,] %>% select(business_id, review_id, stars, type) %>%
-                                merge(aux_table_counts, by = integer(0)) -> aux_table_counts
+                        initial <- TRUE
+                        for(i in begin_block_pos:end_block_pos){
+                                #print(paste("Processed:",(i/nrows_aux*100),"%"))
+                                
+                                #Get text from register and countWords
+                                aux_text <- aux[i,"text"]
+                                aux_table_counts <- countWords(aux_text, ngrams = c(1))
+                                
+                                #Add columns with data of review to data from countWords
+                                aux[i,] %>% select(business_id, review_id, stars, type) %>%
+                                        merge(aux_table_counts, by = integer(0)) -> aux_table_counts
+                                
+                                #Add data to main table_counts
+                                if(initial){
+                                        table_counts <- aux_table_counts
+                                        initial <- FALSE
+                                }
+                                else{
+                                        table_counts <- rbind(table_counts, aux_table_counts)       
+                                }
+                        }
                         
-                        #Add data to main table_counts
-                        if(initial){
-                                table_counts <- aux_table_counts
-                                initial <- FALSE
+                        if(block_count == 1){
+                                final_table_counts <- table_counts
                         }
                         else{
-                                table_counts <- rbind(table_counts, aux_table_counts)       
+                                
                         }
+                        
+                        print(timestamp())
+                        print(paste(end_block_pos,"processed, rest",(nrows_aux - end_block_pos)))
+                        begin_block_pos = end_block_pos + 1
+                        block_count = block_count + 1
+                         
                 }
                                 
-                saveRDS(file=file, table_counts)
+                saveRDS(file=file, final_table_counts)
                 table_counts
                 
+                
         }
+        ###
+        #End function
+        ###
         
-        getTopNGrams <- function(stars_filter=c(4, 4.5, 5), state_filter="CA"){
-                table <- getDataCountOfWords(state_filter = state_filter)
+        ###
+        #Function to get top ngrams
+        ###
+        getTopNGrams <- function(stars_filter=c(4, 4.5, 5), state_filter = default_state, category_filter = NULL, top = 10){
+                table <- getDataCountOfWords(state_filter = state_filter, category_filter = category_filter)
                 
                 #exclude common words
                 table <- table[!(table$word %in% wordsToExclude),]
@@ -666,14 +870,14 @@ textAnalyst <- function(){
                 table %>% filter(stars %in% stars_filter) %>%
                         group_by(word) %>% 
                         summarize(accumulate = sum(total_number)) %>% 
-                        arrange(desc(accumulate)) -> result
-                
-                        
-                         
-                        
-                
+                        arrange(desc(accumulate)) %>% 
+                        head(top) -> result
+
                 result
         }
+        ###
+        #End Function
+        ###
         
         list(countWords=countWords,
              getDataCountOfWords=getDataCountOfWords,
@@ -686,7 +890,6 @@ main <- function(){
         
 if(!dir.exists(dir_process)) { dir.create(dir_process)}
 
-mainController <<- controller()
 mainCategories <<- categories()
 mainData <<- data()
 mainTotals <<- totals()
@@ -695,7 +898,8 @@ mainModelController <<- modelController()
 
 #datos <<- mainController$mainMenu()
 
-modelo <<- mainModelController$createModelperState(recalculate = TRUE, state_filter = "BW", category_filter = "Food")
+mainModelController$init()
+modelo <<- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = "Food")
 
 # datos <<- mainCategories$getBusinessCategories("BW")
 # datos_f <<- mainCategories$getUniqueCategories(state_filter="BW")
@@ -703,7 +907,7 @@ modelo <<- mainModelController$createModelperState(recalculate = TRUE, state_fil
 # tp_sepparate <<- mainTextAnalyst$countWords(tp)
 # state <- "XGL"
 # 
-# tp <<- mainTextAnalyst$getDataCountOfWords(overwrite=FALSE, state_filter=state)
+# tp <<- mainTextAnalyst$getDataCountOfWords(overwrite=FALSE, state_filter=default_state)
 # t2 <<- mainTextAnalyst$getTopNGrams(state_filter=state)
 # t3 <<- mainTextAnalyst$getTopNGrams(stars_filter=c(1,1.5,2,2.5), state_filter=state)
 #View(t2)
