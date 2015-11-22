@@ -5,7 +5,9 @@ date: "November 22th 2015"
 output: pdf_document
 ---
 
-**Introduction**
+***
+
+##Introduction
 
 In order to get top rate as business in a city is analyzed Where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
 
@@ -13,11 +15,13 @@ To do that analysis is used as input Business Category and City. As output: Top 
 
 For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I have to give to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
 
-**Methods and Data**
+***
 
-Steps:
+##Methods and Data
 
-*ETL -> 1.Get_Data.R*
+###Steps:
+
+**ETL -> 1.Get_Data.R**
 
 * Download data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip and unzip it.
 * Extract json information from files "business","checkin","tip","review" (Excluded "user", not relevant for my analysis)
@@ -25,9 +29,32 @@ Steps:
 * Identify business per state.
 * Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
 
-*Process -> 2.Proces Data.R*
+**Process -> 2.Proces Data.R**
 
 * Use as input State and Business Category.
+
+**List of States:**
+
+```{r states, echo=FALSE, message=FALSE, results='asis'}
+source('2.Process Data.R')
+#Get States
+list_states <- list.files(dir_states)
+list_states <- list_states[!grepl("resources",list_states)]
+print(paste(list_states, collapse = ", "))
+```
+
+**List of Categories:**
+
+```{r categories, echo=FALSE, message=FALSE, results='asis'}
+state_filter <- "NC"
+
+#Get an order list of categories
+categories <- sort(categories()$getUniqueCategories(state_filter = state_filter)$categories)
+
+print(paste(sort(categories), collapse = ", "))
+
+```
+
 * Intermediate Output to support analysis and define model
 * Relation Attributes-Stars
 * Count words.
@@ -38,12 +65,13 @@ Output
 * Map of top rated business.
 * Random forest model fitted for a Business Category and State and analysis to verify that all those attributes and words have a correlation with star rates.
 
+***
 
-**Results - Describe what you found through your analysis of the data.**
+##Results - Describe what you found through your analysis of the data.
 
 * Use as State: "NC" and "Food" as category.
 
-**List of top attributes**
+**List of top attributes and Top-5 positive and negative words for 1-gram:**
 
 List filtered, % of positive and negative over total must be over 2.5%, difference between positive and negative must be over 0.15 stars to be relevant.
 
@@ -78,8 +106,6 @@ xt_attTable <- xtable(attTable)
 print(xt_attTable, include.rownames=FALSE, comment = FALSE)
 ```
 
-**Top-5 possitive and negative words:**
-
 ```{r topWords, echo=FALSE, message=FALSE, results='asis'}
 #source('2.Process Data.R')
 #state_filter <- "NC"
@@ -88,15 +114,16 @@ print(xt_attTable, include.rownames=FALSE, comment = FALSE)
 mainTextAnalyst <- textAnalyst()
 
 topTable <- mainTextAnalyst$getTopNGrams(stars_filter=c(4, 4.5, 5), state_filter=state_filter, category_filter = category_filter, top = 5)
-xt_topTable <- xtable(topTable)
+xt_topTable <- xtable(topTable, caption = "Top-5 positive words")
 
 bottomTable <- mainTextAnalyst$getTopNGrams(stars_filter=c(1, 1.5, 2, 2.5), state_filter=state_filter, category_filter = category_filter, top = 5)
-xt_bottomTable <- xtable(bottomTable)
+xt_bottomTable <- xtable(bottomTable, caption = "Top-5 negative words")
 
 print(xt_topTable, comment = FALSE)
 print(xt_bottomTable, comment = FALSE)
 ```
 
+------
 
 **Map of Business:**
 
@@ -109,14 +136,17 @@ mapBusiness(state_filter = state_filter, category_filter = category_filter)
 
 **Model:**
 
-```{r model}
+```{r model, echo=FALSE, message=FALSE, warning=FALSE}
 mainModelController <- modelController()
 mainModelController$init()
-modelo <<- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = "Food")
+modelo <- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = "Food")
+print(modelo)
+
 ```
 
+***
 
-**Discussion - Explain how you interpret the results of your analysis and what the implications are for your question/problem.**
+##Discussion - Explain how you interpret the results of your analysis and what the implications are for your question/problem.
 
 
 

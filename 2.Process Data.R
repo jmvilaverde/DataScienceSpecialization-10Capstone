@@ -389,7 +389,7 @@ modelController <- function(){
         ###
         transformAndClean <- function(data, attributes){
                 
-                data_formated <- data[colnames(data) %in% attributes | colnames(data) %in% c("stars", "business_id")]
+                data_formated <- data[colnames(data) %in% attributes | colnames(data) %in% c("stars", "business_id", "latitude", "longitude")]
                 
                 #Configure NO values to transform into factors
                 data_formated[is.na(data_formated)] <- "NO"
@@ -398,15 +398,21 @@ modelController <- function(){
                 
                 #Configure YES values
                 data_formated[data_formated==TRUE] <- "YES"
-                
-                
+               
+                #All attributes as character
+                for(att in attributes){
+                        data_formated[,att] <- as.character(data_formated[,att])
+                        data_formated[,att] <- as.factor(data_formated[,att])
+                }
+
+                data_formated[,"stars"] <- as.factor(data_formated[,"stars"])
                 #data_formated[,grepl("attributes", names(data_formated))] <- flatten(data_formated[,grepl("attributes", names(data_formated))])
                 
                 #Problem to transform all attributes into factors solved with information from URL:
                 #http://grokbase.com/t/r/r-help/12614bx2jd/r-redefine-multiple-columns-using-grep-as-factor-variables
                 #data_formated[,grepl("attributes", names(data_formated))] <- lapply(data_formated[,grepl("attributes", names(data_formated))], as.factor)
                 
-                #View(data_formated)
+                
                 
                 data_formated
         }
@@ -468,23 +474,34 @@ modelController <- function(){
                                   Attribute.Neg.Word.5=sum(Attribute.Neg.Word.5)>0) %>%
                         data.frame() %>% mutate(business_id = as.character(business_id)) -> dataBusinessAttributesWords
                 
-                View(dataBusinessAttributesWords)
-                print(class(dataBusinessAttributesWords$business_id))
-                print(class(data$business_id))
                 #Add new attributes to the rest of data
-                data %>% left_join(dataBusinessAttributesWords, by="business_id") -> final_data
-                View(data)
-                View(final_data)
-                final_data
+                
+                #data %>% left_join(dataBusinessAttributesWords, by="business_id") ->> final_data
+
+                dataBusinessAttributesWords
                 
 
         }
-                
+
+        ###
+        #Function to create the formula
+        ###
+        createFormula <- function(attributes){
+                attributes_concat <- paste(as.character(attributes), collapse= " + ")
+                attributes_concat <- paste(attributes_concat, "latitude", "longitude", sep = " + ")
+                formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
+                print(formula)
+                formula
+        }
+        ###
+        #End Function
+        ###
+                        
         ###
         #Function to create a model for a specifict State and category
         #No good results, try to use other model instead of LM
         ###
-        createModelperState <- function(recalculate = FALSE, state_filter="BW", category_filter="Food"){
+        createModelperState <- function(recalculate = FALSE, state_filter=NULL, category_filter="Food"){
                 
                 file <- paste(dir_states,"/",state_filter,"/model_category_",category_filter,".RDS", sep="")
                 
@@ -494,12 +511,14 @@ modelController <- function(){
                 }
                 
                 #Get data
-                data <- mainData$getDatasetperCat(dataset = "business", category = category_filter, state_filter = state_filter)
+                dataPerCat <- mainData$getDatasetperCat(dataset = "business", category = category_filter, state_filter = state_filter)
                 
-                data <- addWordsAttributes(data, state_filter = state_filter, category_filter = category_filter)
+                #TODO Fix this to add words attributes
+                #dataBusinessAttributesWords <- addWordsAttributes(data = dataPerCat, state_filter = state_filter, category_filter = category_filter)
+                
+                data <- dataPerCat
                 
                 #Put a new variable, rate "GOOD" >4 stars, "BAD" < 3 stars
-                
                 colnames(data) <- make.names(names(data))
                 
                 #Get relevant attributes
@@ -517,17 +536,13 @@ modelController <- function(){
                 #Transform data to use only relevant columns
                 data_formated <- transformAndClean(data, attributes_unformated$attribute)
                 
-                #Create model
-                #Create formula
-                attributes_concat <- paste(as.character(attributes_unformated$attribute), collapse= " + ")
-                #print(attributes_concat)
-                formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
-                print(formula)
+                ###########
+                #RF Model #
+                ###########
                 
-                #Create model LM, GLM -> FAIL, R-squared value so low
-#                 model_ineffective <- lm(data = data_formated, formula = formula)
-#                 model_ineffective <- glm(data = data_formated, formula = formula)
-#                 
+                #Create formula for model
+                formula <- createFormula(attributes_unformated$attribute)
+                
                 #Create a Cross validation
                 require(caret)
                 require(kernlab)
@@ -536,32 +551,21 @@ modelController <- function(){
                 #Seed to be used to obtain the same results
                 set.seed(1525)
                 
-                
                 #Create training and testingData
                 index <- createDataPartition(y=data_formated$stars, p=0.8, list=FALSE)
                 trainingData <- data_formated[index,]
                 testingData <- data_formated[-index,]
                 
-                ##############
-                #Try RF Model
-                ##############
-                View(trainingData)
-                
+                #Train model
                 model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=500, 
                                trControl = trainControl(method = "cv", number = 5),
-                               prox = TRUE, allowParallel = TRUE)
+                               prox = TRUE, allowParallel = TRUE, trace = FALSE)
                 
-                
-                View(testingData)
                 prediction <- predict(model, testingData)
                 prediction <- as.character(prediction)
                 
                 confusionMatrixModel <- confusionMatrix(prediction, testingData$stars)
                 print(confusionMatrixModel)
-                
-                print(prediction)
-                print(testingData$stars)
-                
                 saveRDS(model, file = file)
                 model
                 
@@ -755,7 +759,7 @@ textAnalyst <- function(){
         ###
         #Function to create a file with the count of words
         ###
-        getDataCountOfWords <- function(overwrite=FALSE, state_filter="CA", category_filter=NULL){
+        getDataCountOfWords <- function(overwrite=FALSE, state_filter=NULL, category_filter=NULL){
                 
                 if(is.null(category_filter)) {
                         cat_file_name = "all"

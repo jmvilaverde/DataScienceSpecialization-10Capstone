@@ -29,22 +29,60 @@ Steps:
 Slide With Code
 ========================================================
 
+**List of top attributes**
 
-```r
-summary(cars)
-```
+List filtered, % of positive and negative over total must be over 2.5%, difference between positive and negative must be over 0.15 stars to be relevant.
 
-```
-     speed           dist       
- Min.   : 4.0   Min.   :  2.00  
- 1st Qu.:12.0   1st Qu.: 26.00  
- Median :15.0   Median : 36.00  
- Mean   :15.4   Mean   : 42.98  
- 3rd Qu.:19.0   3rd Qu.: 56.00  
- Max.   :25.0   Max.   :120.00  
-```
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrrrr}
+  \hline
+Attribute & positives & pos\_avg & negatives & neg\_avg & diff\_avg & pos\% & neg\% \\ 
+  \hline
+attributes.Parking.street &  72 & 4.07 & 600 & 3.71 & 0.36 & 10.71 & 89.29 \\ 
+  attributes.Accepts Credit Cards & 639 & 3.76 &  33 & 3.50 & 0.26 & 95.09 & 4.91 \\ 
+  attributes.Price Range & 647 & 3.76 &  25 & 3.58 & 0.18 & 96.28 & 3.72 \\ 
+  attributes.Parking.garage &  61 & 3.90 & 611 & 3.73 & 0.17 & 9.08 & 90.92 \\ 
+  attributes.Good For.breakfast &  20 & 3.90 & 652 & 3.74 & 0.16 & 2.98 & 97.02 \\ 
+  attributes.Caters &  76 & 3.88 & 596 & 3.73 & 0.15 & 11.31 & 88.69 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+**Top-5 possitive and negative words:**
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlr}
+  \hline
+ & word & accumulate \\ 
+  \hline
+1 & good & 38.00 \\ 
+  2 & range & 23.00 \\ 
+  3 & food & 20.00 \\ 
+  4 & place & 18.00 \\ 
+  5 & service & 15.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlr}
+  \hline
+ & word & accumulate \\ 
+  \hline
+1 & food & 21.00 \\ 
+  2 & time & 14.00 \\ 
+  3 & good & 12.00 \\ 
+  4 & place & 12.00 \\ 
+  5 & no & 11.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
 
 Slide With Plot
 ========================================================
 
-![plot of chunk unnamed-chunk-2](Presentation-figure/unnamed-chunk-2-1.png) 
+**Map of Business:**
+
+![plot of chunk mapBusiness](Presentation-figure/mapBusiness-1.png) 
