@@ -1,7 +1,7 @@
 Analysis of relation between Stars rating vs. most relevant Attributes and n-grams (words) in Reviews filtered by State and Category of Business
 ========================================================
 author: Jose Maria Vilaverde
-date: November 22th 2015
+date: November 22th, 2015
 transition: rotate
 width: 1200
 height: 900
@@ -13,7 +13,7 @@ In order to **get top rate as business in a State** is analyzed where have to be
 
 To do that **analysis** is used as **input Business Category and State**. As **output**: **Top Rate, Location-Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid**.
 
-For **example**, If I want to open a **business** for **category "dentist" in Arizona**, I need to know where is the **best place to open the business**, **services** that I need to offer to my customers, like "credit card accepted", and **identify** most relevant **positive review words** that I need to get from my customers **and negative review words** for my business category in Arizona.
+For **example**, if I want to open a **business** for **category "dentist" in Arizona**, I need to know where is the **best place to open the business**, **services** that I need to offer to my customers, like "credit card accepted", and **identify** most relevant **positive review words** that I need to get from my customers **and negative review words** for my business category in Arizona.
 
 Methods and Data
 ========================================================
@@ -32,7 +32,7 @@ p#myPara{
 
 **Map of Business Star rates**
 
-```{r mapBusiness, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=16}
+```{r mapBusiness, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=16, cache = TRUE}
 source('2.Process Data.R')
 state_filter <- "NC"
 category_filter <- "Food"
@@ -44,7 +44,7 @@ mapBusiness(state_filter = state_filter, category_filter = category_filter, titl
 
 **Random Forest Formula**
 <p id="myPara">
-```{r model1, echo=FALSE, message=FALSE, warning=FALSE, results='asis', cache= FALSE}
+```{r model1, echo=FALSE, message=FALSE, warning=FALSE, results='asis', cache= TRUE}
 mainModelController <- modelController()
 mainModelController$init()
 model <- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = category_filter)
@@ -53,6 +53,13 @@ model <- mainModelController$createModelperState(recalculate = TRUE, state_filte
 
 Discussion
 ========================================================
+<style>
+
+p#myPara{
+  font-size: 0.5em;
+}
+
+</style>
 
 **Random Forest Model: Confusion Matrix Overall**
 ```{r model, echo=FALSE, message=FALSE, warning=FALSE, results='hide', cache= TRUE}
@@ -72,4 +79,6 @@ Based on this analysis, in one hand, **use of attributes as stars rate predictor
 _Please, for detailed information read pdf analysis version._
 
 **Thanks for your attention!**
+
+<p id="myPara">Github code: https://github.com/jmvilaverde/DataScienceSpecialization-10Capstone</p>
 

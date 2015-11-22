@@ -1,19 +1,21 @@
 ---
 title: "Analysis of relation between Stars rating vs. most relevant Attributes and n-grams (words) in Reviews filtered by State and Business Category."
 author: "Jose Maria Vilaverde"
-date: "November 22th 2015"
+date: "November 22th, 2015"
 output: pdf_document
 ---
 
 ***
+####Github code: [https://github.com/jmvilaverde/DataScienceSpecialization-10Capstone]
+***
 
 #Introduction
 
-In order to get top rate as business in a city is analyzed where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
+In order to **get top rate as business in a State** is analyzed where have to be **located** my business, which **services** I need to offer, what **positive review words** I need to be associated to my business **and** what **negative review words** I need to avoid.
 
-To do that analysis is used as input Business Category and State. As output: Top Rate, Location-Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid.
+To do that **analysis** is used as **input Business Category and State**. As **output**: **Top Rate, Location-Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid**.
 
-For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I need to offer to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
+For **example**, if I want to open a **business** for **category "dentist" in Arizona**, I need to know where is the **best place to open the business**, **services** that I need to offer to my customers, like "credit card accepted", and **identify** most relevant **positive review words** that I need to get from my customers **and negative review words** for my business category in Arizona.
 
 ***
 
@@ -33,9 +35,11 @@ For example, If I want to open a business for category "dentist" in Arizona, I n
 
 1.5.Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
 
+\newpage
+
 **2.Process -> 2.Proces Data.R**
 
-##Obtain auxiliar dataset
+###Obtain auxiliar dataset
 
 2.1.Use as input State and Business Category.
 
@@ -174,14 +178,15 @@ print(confusionMatrixModel$byClass)
 
 ##Attributes Analysis
 
-At initial analysis are detected attributes that have an impact over $\pm0.15 stars rate$. 
+At initial analysis are detected attributes that have an impact over $\pm0.15$ stars rate. 
+
 Positive % (pos% = $\frac{positive reviews}{total reviews}$) and negative % (neg% = $\frac{negative reviews}{total reviews}$) must be >2.5% to avoid to interprete exceptions as true influencers of stars rate.
 
 With this conditions, are identied some attibutes with an influence between (0.36, 0.15). This attributes and latitude and longitude are the factors for the model.
 
 ##Top-5 positive and negative 1-gram
 
-Top-5 positive and negative 1-gram analysis appears as no useful in this case, because some 1-gram detected as top positive appears also as most frequent into top negative 1-gram, due to this, these are not included into the model. For a small-medium set of reviews is not useful this kind of analysis, is recomended to try use it over greater data set of review or include 2-grams/3-grams to evaluate if are relevant is that scenario.
+Top-5 positive and negative 1-gram analysis appears as no useful in this case, because some 1-gram detected as top positive appears also as most frequent into top negative 1-gram, due to this, these are not included into the model. For a small-medium set of reviews is not useful this kind of analysis, is recomended to try to use it over greater data set of review or include 2-grams/3-grams to evaluate if are relevant is that scenario.
 
 ##Map of business
 
