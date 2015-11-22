@@ -48,7 +48,7 @@ categories <- function(){
                 else{file_to_save <- paste(dir_states,state,"categories.RDS",sep="/")}
                 
                 if(file.exists(file_to_save)){
-                        print(paste("File exists:",file_to_save))
+                        #print(paste("File exists:",file_to_save))
                         dataCat <- readRDS(file_to_save)
                         return(dataCat)
                 }
@@ -188,15 +188,8 @@ data <- function(){
                         
                 }
                 
-#                 if(dataset=="review") {
-#                         as.data.frame(data)
-#                 }
-#                 else{
                         data
-#                 }
-                
-                
-                
+
         }
         ###
         #End function
@@ -225,7 +218,7 @@ data <- function(){
                 initial <- TRUE
                 counter <- 0
                 for(att in attributes){
-                        log(att)
+                        print(att)
                         print(paste("Progress",counter/length(attributes)*100,"%"), digits = 1)
                         counter <- counter+1
                 
@@ -358,7 +351,7 @@ data <- function(){
                         
                 }
                 
-                print(nrow(aux_data))
+                #print(nrow(aux_data))
                 aux_data
         }
         ###
@@ -433,62 +426,58 @@ modelController <- function(){
         ###
         addWordsAttributes <- function(data, state_filter, category_filter){
                 #Top-n words
-                top_n = 10
+                top_n = 5
                 
                 #Get words for business
-                data_businessWords <<- mainTextAnalyst$getDataCountOfWords(state_filter=state_filter, category_filter = category_filter)
+                data_businessWords <- mainTextAnalyst$getDataCountOfWords(state_filter=state_filter, category_filter = category_filter)
+                
                 #Get top words
-                data_topPositiveWords <<- mainTextAnalyst$getTopNGrams(stars_filter=c(4, 4.5, 5), state_filter=state_filter, category_filter = category_filter, top = top_n)
-                data_topPositiveWords[,"order_positive"] <<- c(1:top_n)
+                data_topPositiveWords <- mainTextAnalyst$getTopNGrams(stars_filter=c(4, 4.5, 5), state_filter=state_filter, category_filter = category_filter, top = top_n)
+                data_topPositiveWords[,"order_positive"] <- c(1:top_n)
                 data_topNegativeWords <<- mainTextAnalyst$getTopNGrams(stars_filter=c(1, 1.5, 2, 2.5), state_filter=state_filter, category_filter = category_filter, top = top_n)
-                data_topNegativeWords[,"order_negative"] <<- c(1:top_n)
-                View(data_topPositiveWords)
-                View(data_topNegativeWords)
-                
-                
+                data_topNegativeWords[,"order_negative"] <- c(1:top_n)
+
                 
                 #Check if word exists for business
-                data_businessWords %>% inner_join(data_topPositiveWords, by="word") %>% select(business_id, order_positive) -> table_pos
-                data_businessWords %>% inner_join(data_topNegativeWords, by="word") %>% select(business_id, order_negative) -> table_neg
+                #Get coincidences with positive and negative top words
+                data_businessWords %>% 
+                        inner_join(data_topPositiveWords, by="word") %>% 
+                        select(business_id, order_positive) -> table_pos
+                data_businessWords %>% 
+                        inner_join(data_topNegativeWords, by="word") %>% 
+                        select(business_id, order_negative) -> table_neg
                 
+                #Create table complete
                 for(i in 1:top_n) { 
                         table_pos[,paste("Attribute.Pos.Word.",i,sep="")] <- table_pos[,"order_positive"]==i
                         table_neg[,paste("Attribute.Neg.Word.",i,sep="")] <- table_neg[,"order_negative"]==i
                 }
-                table_pos <<- table_pos
                 
-                initial <- TRUE
+                table_pos %>% full_join(table_neg, by="business_id") -> table_complete
                 
-                print("Data business words")
-                print(unique(data_businessWords[,"business_id"]))
+                table_complete %>% group_by(business_id) %>% 
+                        summarize(Attribute.Pos.Word.1=sum(Attribute.Pos.Word.1)>0,
+                                  Attribute.Pos.Word.2=sum(Attribute.Pos.Word.2)>0,
+                                  Attribute.Pos.Word.3=sum(Attribute.Pos.Word.3)>0,
+                                  Attribute.Pos.Word.4=sum(Attribute.Pos.Word.4)>0,
+                                  Attribute.Pos.Word.5=sum(Attribute.Pos.Word.5)>0,
+                                  Attribute.Neg.Word.1=sum(Attribute.Neg.Word.1)>0,
+                                  Attribute.Neg.Word.2=sum(Attribute.Neg.Word.2)>0,
+                                  Attribute.Neg.Word.3=sum(Attribute.Neg.Word.3)>0,
+                                  Attribute.Neg.Word.4=sum(Attribute.Neg.Word.4)>0,
+                                  Attribute.Neg.Word.5=sum(Attribute.Neg.Word.5)>0) %>%
+                        data.frame() %>% mutate(business_id = as.character(business_id)) -> dataBusinessAttributesWords
                 
-                for(business in unique(table_pos[,"business_id"])){
-                                aux_table <- business
-                                aux_table <- data.frame(aux_table)
-                                colnames(aux_table) <- "business_id"
-                        
-                        for(i in 1:top_n) {
-                                        aux_table <- cbind(aux_table, sum(table_pos[table_pos[,"business_id"] == business,paste("Attribute.Pos.Word.",i,sep="")]) > 0)
-                                        colnames(aux_table)[i+1] <- paste("Attribute.Pos.Word.",i,sep="")
+                View(dataBusinessAttributesWords)
+                print(class(dataBusinessAttributesWords$business_id))
+                print(class(data$business_id))
+                #Add new attributes to the rest of data
+                data %>% left_join(dataBusinessAttributesWords, by="business_id") -> final_data
+                View(data)
+                View(final_data)
+                final_data
+                
 
-                        }
-                        
-                        if(initial){
-                                table_pos_with_data <- aux_table
-                                initial = FALSE
-                        }
-                        else{
-                                table_pos_with_data <- rbind(table_pos_with_data,aux_table)
-                        }
-                        rm(aux_table)
-                        
-
-                }
-                
-                View(table_pos_with_data)
-                #For each word create an attribute
-                #View(data_words)
-                #Return data
         }
                 
         ###
@@ -523,7 +512,7 @@ modelController <- function(){
                         filter(state==state_filter, positive.over.total>validity_range, negative.over.total>validity_range,
                                       (difference_avg>validity_difference | difference_avg<(-validity_difference))) -> attributes_unformated
                 
-                View(attributes_unformated)
+                #View(attributes_unformated)
                 
                 #Transform data to use only relevant columns
                 data_formated <- transformAndClean(data, attributes_unformated$attribute)
@@ -531,7 +520,7 @@ modelController <- function(){
                 #Create model
                 #Create formula
                 attributes_concat <- paste(as.character(attributes_unformated$attribute), collapse= " + ")
-                print(attributes_concat)
+                #print(attributes_concat)
                 formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
                 print(formula)
                 
@@ -554,15 +543,14 @@ modelController <- function(){
                 testingData <- data_formated[-index,]
                 
                 ##############
-                #Try LDA Model -> FAIL, worng model type for regression
                 #Try RF Model
                 ##############
                 View(trainingData)
                 
-                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=500) 
-#                                trControl = trainControl(method = "cv", number = 5),
-#                                prox = TRUE, allowParallel = TRUE)
-#                 
+                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=500, 
+                               trControl = trainControl(method = "cv", number = 5),
+                               prox = TRUE, allowParallel = TRUE)
+                
                 
                 View(testingData)
                 prediction <- predict(model, testingData)
@@ -781,7 +769,7 @@ textAnalyst <- function(){
                 
                 #Check if file exists and no overwrite to load exiting data and return it
                 if(file.exists(file)&&!overwrite) {
-                        print("File exists")
+                        #print("File exists")
                         return(readRDS(file))
                         }
                 
@@ -884,6 +872,43 @@ textAnalyst <- function(){
              getTopNGrams=getTopNGrams)
 }
 
+###
+#Function to draw a map with situation per location
+###
+
+mapBusiness <- function(state_filter=default_state, category_filter){
+        
+        #Get data
+        data <- mainData$getDatasetperCat(state_filter=state_filter, category = category_filter)
+        
+        #Locate central point for business
+        avg_long <- mean(data$longitude)
+        avg_lat <- mean(data$lat)
+        
+        #Remove all business at remote location
+        data %>% filter(abs(abs(longitude)-abs(avg_long))<2,abs(abs(latitude)-abs(avg_lat))<2) -> data
+        
+        data %>% filter(stars %in% c(4, 4.5, 5)) -> dataTop
+
+        data %>% filter(stars %in% c(1, 1.5, 2, 2.5)) -> dataBottom                        
+                        
+#        library(car)
+#         scatterplot(latitude ~ longitude | stars, data = data, xlab="Longitude", ylab="Latitude", 
+#                     main=paste("State:",state_filter,"- category:",category_filter))
+        require(ggplot2)
+        require(gridExtra)
+        
+        t <- theme(plot.title=element_text(size = 8))
+        
+        gTop <- ggplot(data = dataTop, aes(x=longitude, y=latitude)) + geom_point(colour="blue")
+        gTop <- gTop + ggtitle(paste(">=4 Stars business in state",state_filter,"and category",category_filter)) +t
+        gBottom <- ggplot(data = dataBottom, aes(x=longitude, y=latitude)) + geom_point(colour="red")
+        gBottom <- gBottom + ggtitle(paste("<3 Stars business in state",state_filter,"and category",category_filter)) +t
+        grid.arrange(gTop, gBottom, ncol=2)
+#         plot(latitude ~ longitude, data = data, xlab="Longitude", ylab="Latitude", 
+#                     main=paste("State:",state_filter,"- category:",category_filter))
+        
+}
 
 #Main function
 main <- function(){

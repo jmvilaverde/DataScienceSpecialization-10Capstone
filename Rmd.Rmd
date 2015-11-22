@@ -1,0 +1,28 @@
+---
+title: "Structure"
+author: "jmvilaverde"
+date: "Monday, October 12, 2015"
+output: pdf_document
+---
+
+Business:
+
+"business_id"   
+"full_address"  
+"hours"
+        "Tuesday"   "Friday"    "Monday"    "Wednesday" "Thursday"
+                "close" "open"
+                Transform into 14 columns
+"open"          
+"categories"    Auxiliary table with values Factors
+"city"          Cast as factor
+"review_count" 
+"name"
+"neighborhoods" Cast as factor
+"longitude"     
+"state"         Cast as factor
+"stars"         
+"latitude"
+"attributes"   Auxiliary table
+        "By Appointment Only"
+"type" Cast as factor

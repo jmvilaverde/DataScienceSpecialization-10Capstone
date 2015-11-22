@@ -1,0 +1,96 @@
+Analysis of relation between Stars rating vs. most relevant Attributes and n-grams (words) in Reviews filtered by State and Category of Business.
+========================================================
+author: Jose Maria Vilaverde
+date: November 22th 2015
+
+Introduction
+========================================================
+
+In order to get top rate as business in a city is analyzed Where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
+
+To do that analysis is used as input Business Category and City. As output: Top Rate, Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid.
+
+For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I have to give to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
+
+Methods and Data
+========================================================
+
+Steps:
+
+*ETL -> 1.Get_Data.R*
+
+- Download data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip and unzip it.
+- Extract json information from files "business","checkin","tip","review" (Excluded "user", not relevant for my analysis)
+- Store it into RDS file. Review is divided into files with 100.000 lines/file in order to make affordable the calculation for my computer. For review I obtained 16 files.
+- Identify business per state.
+- Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
+
+
+Slide With Code
+========================================================
+
+**List of top attributes**
+
+List filtered, % of positive and negative over total must be over 2.5%, difference between positive and negative must be over 0.15 stars to be relevant.
+
+```{r topAttributes, echo=FALSE, message=FALSE, results='asis'}
+source('2.Process Data.R')
+state_filter <- "NC"
+category_filter <- "Food"
+
+#% of positive and negative over total must be over 2.5%
+validity_range <- 2.5
+
+#Difference between positive and negative must be over 0.15 stars to be relevant
+validity_difference <- 0.15
+
+mainDataController <- data()
+
+attTable <- mainDataController$getTotalsAttStars(overwrite = FALSE, state_filter = state_filter, category = category_filter)
+
+library(dplyr)
+attTable %>%
+filter(state==state_filter, positive.over.total>validity_range, negative.over.total>validity_range,
+                                      (difference_avg>validity_difference | difference_avg<(-validity_difference))) %>%
+        select(-state) -> attTable
+
+colnames(attTable) <- c("Attribute", "positives", "pos_avg", "negatives", "neg_avg", "diff_avg", "pos%", "neg%")
+
+#Use library xtable to generate html table
+library(xtable)
+#xtable_attTable <- xtable(select(attTable, attribute, number_positive, positive_avg, number_negative, negative_avg, difference_avg, positive.over.total, 
+xt_attTable <- xtable(attTable)
+
+print(xt_attTable, include.rownames=FALSE, comment = FALSE)
+```
+
+**Top-5 possitive and negative words:**
+
+```{r topWords, echo=FALSE, message=FALSE, results='asis'}
+#source('2.Process Data.R')
+#state_filter <- "NC"
+#category_filter <- "Food"
+
+mainTextAnalyst <- textAnalyst()
+
+topTable <- mainTextAnalyst$getTopNGrams(stars_filter=c(4, 4.5, 5), state_filter=state_filter, category_filter = category_filter, top = 5)
+xt_topTable <- xtable(topTable)
+
+bottomTable <- mainTextAnalyst$getTopNGrams(stars_filter=c(1, 1.5, 2, 2.5), state_filter=state_filter, category_filter = category_filter, top = 5)
+xt_bottomTable <- xtable(bottomTable)
+
+print(xt_topTable, comment = FALSE)
+print(xt_bottomTable, comment = FALSE)
+```
+
+Slide With Plot
+========================================================
+
+**Map of Business:**
+
+```{r mapBusiness, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3}
+mainData <- data()
+mainCategories <- categories()
+
+mapBusiness(state_filter = state_filter, category_filter = category_filter)
+```
