@@ -490,7 +490,6 @@ modelController <- function(){
                 attributes_concat <- paste(as.character(attributes), collapse= " + ")
                 attributes_concat <- paste(attributes_concat, "latitude", "longitude", sep = " + ")
                 formula <- as.formula(paste("stars ~ ", attributes_concat, sep=""))
-                print(formula)
                 formula
         }
         ###
@@ -542,7 +541,7 @@ modelController <- function(){
                 
                 #Create formula for model
                 formula <- createFormula(attributes_unformated$attribute)
-                
+
                 #Create a Cross validation
                 require(caret)
                 require(kernlab)
@@ -557,16 +556,21 @@ modelController <- function(){
                 testingData <- data_formated[-index,]
                 
                 #Train model
-                model <- train(formula, data = trainingData, method = "rf", do.trace=10, ntree=500, 
+                model <- train(formula, data = trainingData, method = "rf", ntree=500, 
                                trControl = trainControl(method = "cv", number = 5),
                                prox = TRUE, allowParallel = TRUE, trace = FALSE)
                 
                 prediction <- predict(model, testingData)
                 prediction <- as.character(prediction)
                 
-                confusionMatrixModel <- confusionMatrix(prediction, testingData$stars)
-                print(confusionMatrixModel)
+                confusionMatrixModel <<- confusionMatrix(prediction, testingData$stars)
+                
+                #Print relevant information
+                print(formula)
+                
+                #print(confusionMatrixModel)
                 saveRDS(model, file = file)
+                
                 model
                 
         }
@@ -574,6 +578,7 @@ modelController <- function(){
 
         list(init=init,
              transformAndClean=transformAndClean,
+             createFormula=createFormula,
              addWordsAttributes=addWordsAttributes,
              createModelperState=createModelperState)
 }
@@ -880,7 +885,7 @@ textAnalyst <- function(){
 #Function to draw a map with situation per location
 ###
 
-mapBusiness <- function(state_filter=default_state, category_filter){
+mapBusiness <- function(state_filter=default_state, category_filter, title_size=8){
         
         #Get data
         data <- mainData$getDatasetperCat(state_filter=state_filter, category = category_filter)
@@ -902,7 +907,7 @@ mapBusiness <- function(state_filter=default_state, category_filter){
         require(ggplot2)
         require(gridExtra)
         
-        t <- theme(plot.title=element_text(size = 8))
+        t <- theme(plot.title=element_text(size = title_size))
         
         gTop <- ggplot(data = dataTop, aes(x=longitude, y=latitude)) + geom_point(colour="blue")
         gTop <- gTop + ggtitle(paste(">=4 Stars business in state",state_filter,"and category",category_filter)) +t

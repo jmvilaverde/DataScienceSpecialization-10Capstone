@@ -1,88 +1,67 @@
-Analysis of relation between Stars rating vs. most relevant Attributes and n-grams (words) in Reviews filtered by State and Category of Business.
+Analysis of relation between Stars rating vs. most relevant Attributes and n-grams (words) in Reviews filtered by State and Category of Business
 ========================================================
 author: Jose Maria Vilaverde
 date: November 22th 2015
+transition: rotate
+width: 1200
+height: 900
 
 Introduction
 ========================================================
 
-In order to get top rate as business in a city is analyzed Where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
+In order to **get top rate as business in a State** is analyzed where have to be **located** my business, which **services** I need to offer, what **positive review words** I need to be associated to my business **and** what **negative review words** I need to avoid.
 
-To do that analysis is used as input Business Category and City. As output: Top Rate, Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid.
+To do that **analysis** is used as **input Business Category and State**. As **output**: **Top Rate, Location-Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid**.
 
-For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I have to give to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
+For **example**, If I want to open a **business** for **category "dentist" in Arizona**, I need to know where is the **best place to open the business**, **services** that I need to offer to my customers, like "credit card accepted", and **identify** most relevant **positive review words** that I need to get from my customers **and negative review words** for my business category in Arizona.
 
 Methods and Data
 ========================================================
 
-Steps:
+![alt text](MethodsAndData.png)
 
-*ETL -> 1.Get_Data.R*
-
-- Download data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip and unzip it.
-- Extract json information from files "business","checkin","tip","review" (Excluded "user", not relevant for my analysis)
-- Store it into RDS file. Review is divided into files with 100.000 lines/file in order to make affordable the calculation for my computer. For review I obtained 16 files.
-- Identify business per state.
-- Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
-
-
-Slide With Code
+Results for state "NC" and category "Food"
 ========================================================
+<style>
 
-**List of top attributes**
+p#myPara{
+  font-size: 0.5em;
+}
 
-List filtered, % of positive and negative over total must be over 2.5%, difference between positive and negative must be over 0.15 stars to be relevant.
+</style>
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{lrrrrrrr}
-  \hline
-Attribute & positives & pos\_avg & negatives & neg\_avg & diff\_avg & pos\% & neg\% \\ 
-  \hline
-attributes.Parking.street &  72 & 4.07 & 600 & 3.71 & 0.36 & 10.71 & 89.29 \\ 
-  attributes.Accepts Credit Cards & 639 & 3.76 &  33 & 3.50 & 0.26 & 95.09 & 4.91 \\ 
-  attributes.Price Range & 647 & 3.76 &  25 & 3.58 & 0.18 & 96.28 & 3.72 \\ 
-  attributes.Parking.garage &  61 & 3.90 & 611 & 3.73 & 0.17 & 9.08 & 90.92 \\ 
-  attributes.Good For.breakfast &  20 & 3.90 & 652 & 3.74 & 0.16 & 2.98 & 97.02 \\ 
-  attributes.Caters &  76 & 3.88 & 596 & 3.73 & 0.15 & 11.31 & 88.69 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-**Top-5 possitive and negative words:**
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rlr}
-  \hline
- & word & accumulate \\ 
-  \hline
-1 & good & 38.00 \\ 
-  2 & range & 23.00 \\ 
-  3 & food & 20.00 \\ 
-  4 & place & 18.00 \\ 
-  5 & service & 15.00 \\ 
-   \hline
-\end{tabular}
-\end{table}
-\begin{table}[ht]
-\centering
-\begin{tabular}{rlr}
-  \hline
- & word & accumulate \\ 
-  \hline
-1 & food & 21.00 \\ 
-  2 & time & 14.00 \\ 
-  3 & good & 12.00 \\ 
-  4 & place & 12.00 \\ 
-  5 & no & 11.00 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-Slide With Plot
-========================================================
-
-**Map of Business:**
+**Map of Business Star rates**
 
 ![plot of chunk mapBusiness](Presentation-figure/mapBusiness-1.png) 
+
+**Random Forest Formula**
+<p id="myPara">
+stars ~ attributes.Parking.validated + attributes.Ambience.hipster + 
+    attributes.Parking.street + attributes.Accepts.Credit.Cards + 
+    attributes.Music.live + attributes.Price.Range + attributes.Parking.garage + 
+    attributes.Good.For.breakfast + attributes.Takes.Reservations + 
+    attributes.Caters + attributes.Good.For.Groups + attributes.Has.TV + 
+    attributes.Wheelchair.Accessible + attributes.Ambience.casual + 
+    attributes.Good.for.Kids + attributes.Parking.lot + attributes.Good.For.dinner + 
+    latitude + longitude
+<environment: 0x0000000005fd2478>
+</p>
+
+Discussion
+========================================================
+
+**Random Forest Model: Confusion Matrix Overall**
+
+
+Accuracy | Kappa
+---------|-------
+0.2824427 | 0.0320704
+
+**Final Conclusion**
+
+Based on this analysis, in one hand, **use of attributes as stars rate predictor and Top-5 positive and negative 1-gram is inefficient**, can't be used to recomend to business owner attributes to have or words that have to make arise in reviews. Maybe is possible to recommend some attributes, but is not confirmed their direct influence in stars rate. In the other hand,  **Map of business can be useful to stablish location of business in a specific category**.
+
+_Please, for detailed information read pdf analysis version._
+
+**Thanks for your attention!**
+

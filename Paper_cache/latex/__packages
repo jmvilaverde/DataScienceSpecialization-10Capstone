@@ -1,0 +1,11 @@
+base
+dplyr
+jsonlite
+xtable
+ggplot2
+gridExtra
+lattice
+caret
+kernlab
+pROC
+randomForest

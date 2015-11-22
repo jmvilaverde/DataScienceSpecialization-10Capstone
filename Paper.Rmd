@@ -7,34 +7,40 @@ output: pdf_document
 
 ***
 
-##Introduction
+#Introduction
 
-In order to get top rate as business in a city is analyzed Where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
+In order to get top rate as business in a city is analyzed where have to be established my business, which services I need to offer, what positive review words I need to be associated to my business and what negative review words I need to avoid
 
-To do that analysis is used as input Business Category and City. As output: Top Rate, Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid.
+To do that analysis is used as input Business Category and State. As output: Top Rate, Location-Neighborhood, Services, Top-5 positive words to promote, Top-5 negative words to avoid.
 
-For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I have to give to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
+For example, If I want to open a business for category "dentist" in Arizona, I need to know where is the best place to open the business, services that I need to offer to my customers, like "credit card accepted", and identify most relevant positive review words that I need to get from my customers and negative review words for my business category in Arizona.
 
 ***
 
-##Methods and Data
+#Methods and Data
 
-###Steps:
+##Steps:
 
-**ETL -> 1.Get_Data.R**
+**1.ETL -> 1.Get_Data.R**
 
-* Download data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip and unzip it.
-* Extract json information from files "business","checkin","tip","review" (Excluded "user", not relevant for my analysis)
-* Store it into RDS file. Review is divided into files with 100.000 lines/file in order to make affordable the calculation for my computer. For review I obtained 16 files.
-* Identify business per state.
-* Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
+1.1.Download data from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/yelp_dataset_challenge_academic_dataset.zip and unzip it.
 
-**Process -> 2.Proces Data.R**
+1.2.Extract json information from files "business","checkin","tip","review" (Excluded "user", not relevant for my analysis)
 
-* Use as input State and Business Category.
+1.3.Store it into RDS file. Review is divided into files with 100.000 lines/file in order to make affordable the calculation for my computer. For review processing are obtained 16 files.
 
-**List of States:**
+1.4.Identify business per state.
 
+1.5.Filter files per business_id per State, create RDS files "checkin","tip","review" per State.
+
+**2.Process -> 2.Proces Data.R**
+
+##Obtain auxiliar dataset
+
+2.1.Use as input State and Business Category.
+
+>**List of States:**
+>
 ```{r states, echo=FALSE, message=FALSE, results='asis'}
 source('2.Process Data.R')
 #Get States
@@ -43,8 +49,8 @@ list_states <- list_states[!grepl("resources",list_states)]
 print(paste(list_states, collapse = ", "))
 ```
 
-**List of Categories:**
-
+>**List of Categories:**
+>
 ```{r categories, echo=FALSE, message=FALSE, results='asis'}
 state_filter <- "NC"
 
@@ -55,23 +61,26 @@ print(paste(sort(categories), collapse = ", "))
 
 ```
 
-* Intermediate Output to support analysis and define model
-* Relation Attributes-Stars
-* Count words.
+2.2.Intermediate Output to support analysis and define model
 
-Output
+2.3.Relation Attributes-Stars
 
-* Attributes to have, top-5 positive words (>=4 stars comments), top-5 negatives words (<3 stars comments).
-* Map of top rated business.
-* Random forest model fitted for a Business Category and State and analysis to verify that all those attributes and words have a correlation with star rates.
+2.4.Count words.
 
-***
+##Get output
 
-##Results - Describe what you found through your analysis of the data.
+2.5.Attributes to have, top-5 positive words (>=4 stars comments), top-5 negatives words (<3 stars comments).
 
-* Use as State: "NC" and "Food" as category.
+2.6.Map of top rated business.
 
-**List of top attributes and Top-5 positive and negative words for 1-gram:**
+2.7.Random forest model fitted for a Business Category and State and analysis to verify that all those attributes and words can predict star rates.
+\newpage
+
+#Results
+
+>Used  as State **"NC"** and **"Food"** as category.
+
+##List of top attributes and Top-5 positive and negative words for 1-gram
 
 List filtered, % of positive and negative over total must be over 2.5%, difference between positive and negative must be over 0.15 stars to be relevant.
 
@@ -105,7 +114,6 @@ xt_attTable <- xtable(attTable)
 
 print(xt_attTable, include.rownames=FALSE, comment = FALSE)
 ```
-
 ```{r topWords, echo=FALSE, message=FALSE, results='asis'}
 #source('2.Process Data.R')
 #state_filter <- "NC"
@@ -122,39 +130,69 @@ xt_bottomTable <- xtable(bottomTable, caption = "Top-5 negative words")
 print(xt_topTable, comment = FALSE)
 print(xt_bottomTable, comment = FALSE)
 ```
+##Map of Business Stars Rates
 
-------
-
-**Map of Business:**
-
-```{r mapBusiness, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3}
+```{r mapBusiness, echo=FALSE, message=FALSE, warning=FALSE, fig.height=2.5}
 mainData <- data()
 mainCategories <- categories()
 
-mapBusiness(state_filter = state_filter, category_filter = category_filter)
+mapBusiness(state_filter = state_filter, category_filter = category_filter, title_size = 8)
 ```
 
-**Model:**
+##Random Forest Model
 
-```{r model, echo=FALSE, message=FALSE, warning=FALSE}
+**Formula**
+
+```{r model, echo=FALSE, message=FALSE, warning=FALSE, results='asis', cache= TRUE}
 mainModelController <- modelController()
 mainModelController$init()
-modelo <- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = "Food")
-print(modelo)
-
+model <- mainModelController$createModelperState(recalculate = TRUE, state_filter = default_state, category_filter = category_filter)
 ```
+
+**Confusion Matrix Table**
+
+```{r confussionMatrixTable, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+print(xtable(confusionMatrixModel$table, caption = "Confussion Matrix"), comment=FALSE)
+```
+
+**Confusion Matrix Overall**
+
+Accuracy | Kappa
+---------|-------
+`r confusionMatrixModel$overall[1]` | `r confusionMatrixModel$overall[2]`
+
+**Confusion Matrix by Class**
+
+```{r confussionMatrix, echo=FALSE, message=FALSE, warning=FALSE}
+print(confusionMatrixModel$byClass)
+```
+
 
 ***
 
-##Discussion - Explain how you interpret the results of your analysis and what the implications are for your question/problem.
+#Discussion
 
+##Attributes Analysis
 
+At initial analysis are detected attributes that have an impact over $\pm0.15 stars rate$. 
+Positive % (pos% = $\frac{positive reviews}{total reviews}$) and negative % (neg% = $\frac{negative reviews}{total reviews}$) must be >2.5% to avoid to interprete exceptions as true influencers of stars rate.
 
+With this conditions, are identied some attibutes with an influence between (0.36, 0.15). This attributes and latitude and longitude are the factors for the model.
 
+##Top-5 positive and negative 1-gram
 
+Top-5 positive and negative 1-gram analysis appears as no useful in this case, because some 1-gram detected as top positive appears also as most frequent into top negative 1-gram, due to this, these are not included into the model. For a small-medium set of reviews is not useful this kind of analysis, is recomended to try use it over greater data set of review or include 2-grams/3-grams to evaluate if are relevant is that scenario.
 
-```{r}
+##Map of business
 
-```
+Map of business shows interesting information, comparing $\geq4$ stars (best rated business) vs. <3 stars (worse rated business) is easy to see the difference between both maps. Moreover, appears an accumulation of best rated business that indicates areas where clients are attracted due to good reviews.
+
+##Random Forest Model
+
+Random Forest Model reveals that hypotesis about influence of attributes alone are not useful to predict rates based on attributes and location. Confussion Matrix Table reveals a poor accuracy into prediction, less than 30%, and appears totaly inefficient to classificate 1.5, 2, 2.5, 3 and 5 stars, and low accuracy for 3.5, 4 and 4.5.
+
+##Implication for the question
+
+Based on this analysis, in one hand, use of attributes as stars rate predictor and Top-5 positive and negative 1-gram is inefficient, can't be used to recomend to business owner attributes to have or words that have to make arise in reviews. Maybe is possible to recommend some attributes, but is not confirmed their direct influence in stars rate. In the other hand,  Map of business can be useful to stablish location of business in a specific category.
 
 
